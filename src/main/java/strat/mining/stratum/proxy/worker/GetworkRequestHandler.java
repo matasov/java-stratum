@@ -123,7 +123,7 @@ public class GetworkRequestHandler extends HttpHandler {
 
 		} catch (NoCredentialsException e) {
 			LOGGER.warn("Request from {} without credentials. Returning 401 Unauthorized.", request.getRemoteAddr());
-			response.setHeader(Header.WWWAuthenticate, "Basic realm=\"stratum-proxy\"");
+			response.setHeader(Header.WWWAuthenticate, "Basic realm=\"java-stratum\"");
 			response.setStatus(HttpStatus.UNAUTHORIZED_401);
 			setResponseError(jsonRpcRequestId, response, "Credentials needed.");
 		} catch (AuthorizationException e) {

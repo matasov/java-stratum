@@ -152,7 +152,7 @@ public class AuthenticationFilter extends BaseFilter {
     private NextAction sendUnauthorizedResponse(FilterChainContext ctx, HttpRequestPacket request) {
         final HttpResponsePacket response = request.getResponse();
         response.setStatus(HttpStatus.UNAUTHORIZED_401);
-        response.addHeader(WWW_AUTHENTICATE_HEADR, "Basic realm=stratum-proxy");
+        response.addHeader(WWW_AUTHENTICATE_HEADR, "Basic realm=java-stratum");
 
         ctx.write(HttpContent.builder(response).content(Buffers.EMPTY_BUFFER).last(true).build());
         return ctx.getStopAction();

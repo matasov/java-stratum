@@ -88,11 +88,11 @@ import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream;
 
 public class Launcher {
 
-	private static final String KEYSTORE_KEY_ENTRY_ALIAS = "stratum-proxy";
+	private static final String KEYSTORE_KEY_ENTRY_ALIAS = "java-stratum";
 
-	private static final String KEYSTORE_PASSWORD = "stratum-proxy";
+	private static final String KEYSTORE_PASSWORD = "java-stratum";
 
-	private static final String KEYSTORE_FILE_NAME = "stratum-proxy-keystore.jks";
+	private static final String KEYSTORE_FILE_NAME = "java-stratum-keystore.jks";
 
 	static {
 		Security.addProvider(new BouncyCastleProvider());

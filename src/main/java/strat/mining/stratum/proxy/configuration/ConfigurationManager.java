@@ -153,7 +153,7 @@ public class ConfigurationManager {
 			cliParser.printUsage();
 			System.exit(0);
 		} else if (cliParser.isVersionRequested()) {
-			String version = "stratum-proxy by Stratehm. GPLv3 Licence. Version " + Constants.VERSION;
+			String version = "java-stratum by Stratehm. GPLv3 Licence. Version " + Constants.VERSION;
 			System.out.println(version);
 			System.exit(0);
 		} else {

@@ -81,8 +81,8 @@ public class SSLRedirectFilter extends SSLBaseFilter {
 	}
 
 	@Override
-	public TransportFilter createOptimizedTransportFilter(final TransportFilter childFilter) {
-		return childFilter;
+	public SSLTransportFilterWrapper createOptimizedTransportFilter(final TransportFilter childFilter) {
+		return (SSLTransportFilterWrapper) childFilter;
 	}
 
 	/**

@@ -1,0 +1,333 @@
+{
+	"charts": 
+	{
+		"months": 
+		[
+			"Janvier",
+			"Février",
+			"Mars",
+			"Avril",
+			"Mai",
+			"Juin",
+			"Juillet",
+			"Août",
+			"Septembre",
+			"Octobre",
+			"Novembre",
+			"Décembre"
+		],
+
+		"shortMonths": 
+		[
+			"Janv.",
+			"Févr.",
+			"Mars",
+			"Avr.",
+			"Mai",
+			"Juin",
+			"Juill.",
+			"Août",
+			"Sept.",
+			"Oct.",
+			"Nov.",
+			"Déc."
+		],
+
+		"thousandsSep": ",",
+		"noData": "Pas de donnée",
+		"numericSymbols": 
+		[
+			"k",
+			"M",
+			"G",
+			"T",
+			"P",
+			"E"
+		],
+
+		"weekDays": 
+		[
+			"Dimanche",
+			"Lundi",
+			"Mardi",
+			"Mercredi",
+			"Jeudi",
+			"Vendredi",
+			"Samedi"
+		]
+	},
+
+	"navbar": 
+	{
+		"title": "Stratum Proxy",
+		"poolsItem": "Pools",
+		"usersItem": "Utilisateurs",
+		"connectionsItem": "Connexions",
+		"settingsItem": "Configuration",
+		"logsItem": "Logs",
+		"loginItem": "Connexion"
+	},
+
+	"footer": 
+	{
+		"donationMessage": "Merci pour vos donations (BTC)",
+		"translatorDonationMessage": "Traduit par Stratehm"
+	},
+
+	"poolsPage": 
+	{
+		"title": "Liste des pools",
+		"refreshButtonLabel": "Rafraichir",
+		"addButtonLabel": "Ajouter",
+		"autoRefresh": "Rafraichissement dans __count__ seconde.",
+		"autoRefresh_plural": "Rafraichissement dans __count__ secondes.",
+		"autoRefresh_undefinite": "Rafraichissement dans -- seconde.",
+		"removePool": 
+		{
+			"keepHistoryConfirmationPopup": 
+			{
+				"title": "Conserver l'historique",
+				"message": "Voulez-vous conserver l'historique du pool __poolName__ ? Si oui, lorsque vous rajouterez un pool avec ce même nom, cet historique sera réutilisé."
+			}
+		}
+	},
+
+	"poolItem": 
+	{
+		"hostLabel": "Hôte",
+		"usernameLabel": "Utilisateur",
+		"passwordLabel": "Mot de passe",
+		"difficultyLabel": "Difficulté",
+		"isEnabledLabel": "Activé",
+		"isStableLabel": "Stable",
+		"isReadyLabel": "Prêt",
+		"isReadySinceLabel": "Prêt depuis",
+		"isActiveLabel": "Actif",
+		"isActiveSinceLabel": "Actif depuis",
+		"extranonce1Label": "Extranonce 1",
+		"extranonce2SizeLabel": "Taille extranonce 2",
+		"workerExtranonce2SizeLabel": "Taille de l'extranonce 2 des mineurs",
+		"numberOfWorkersLabel": "Nombre de mineurs",
+		"priorityLabel": "Priorité",
+		"weightLabel": "Poids",
+		"lastStopCauseLabel": "Cause du dernier arrêt",
+		"lastStopDateLabel": "Date du dernier arrêt",
+		"numberOfDisconnectionsLabel": "Nombre de déconnexions",
+        "uptimeLabel": "Temps de fonctionnement",
+		"isExtranonceSubscribeEnabledLabel": "Abonné au changement d'extranonce",
+		"isAppendWorkerNameLabel": "Concaténation du nom du mineur",
+		"workerNameSeparatorLabel": "Séparateur",
+		"isUseWorkerPasswordLabel": "Utilisation du mot de passe du mineur",
+		"acceptedDifficultyLabel": "Difficulté acceptée",
+		"rejectedDifficultyLabel": "Difficulté refusée",
+		"lastPoolMessageLabel": "Dernier message du pool",
+		"acceptedHashrateLabel": "Puissance de calcul acceptée",
+		"rejectedHashrateLabel": "Puissance de calcul rejetée",
+		"setHighestPriorityButton": "Priorité maximum",
+		"disableButton": "Désactiver",
+		"enableButton": "Activer",
+		"removeButton": "Supprimer",
+		"editButton": "Modifier",
+		"noIsReadySince": "Jamais",
+		"noIsActiveSince": "Jamais",
+		"noDifficulty": "Non défini",
+		"noExtranonce1": "Non défini",
+		"noExtranonce2Size": "Non défini",
+		"noWorkerExtranonce2Size": "Non défini",
+		"noLastStopCause": "Jamais arrêté",
+		"noLastStopDate": "Jamais arrêté",
+		"noLastPoolMessage": "Aucun",
+		"chart": 
+		{
+			"title": "Puissance de calcul",
+			"xAxisTitle": "Date",
+			"yAxisTitle": "Puissance de calcul",
+			"tooltipAcceptedHashrate": "Accepté",
+			"tooltipRejectedHashrate": "Rejeté",
+			"zoom1Hour": "1h",
+			"zoom1Day": "1j",
+			"zoom1Week": "1sem.",
+			"zoom1Month": "1m.",
+			"zoom1Year": "1a",
+			"zoomAll": "Tout"
+		}
+	},
+
+	"addPoolPopup": 
+	{
+		"title": "Ajouter un pool",
+		"closeButtonLabel": "Fermer",
+		"poolNameLabel": "Nom du pool",
+		"poolNamePlaceholder": "",
+		"poolNameHelp": "Le nom du pool. Si vide, utilise l'URL par défaut",
+		"poolHostLabel": "URL du pool",
+		"poolHostPlaceholder": "eu.pool.com:3333",
+		"poolHostHelp": "L'URL du pool sans stratum+tcp://",
+		"usernameLabel": "Nom d'utilisateur",
+		"usernamePlaceholder": "",
+		"usernameHelp": "",
+		"passwordLabel": "Mot de passe",
+		"passwordPlaceholder": "",
+		"passwordHelp": "",
+		"priorityLabel": "Priorité",
+		"priorityPlaceholder": "",
+		"priorityHelp": "",
+		"weightLabel": "Poids",
+		"weightPlaceholder": "",
+		"weightHelp": "",
+		"enableExtranonceSubscribeLabel": "Abonnement au changement d'extranonce",
+		"enableExtranonceSubscribeHelp": "A activer seulement si le pool est compatible (Nicehash par example).La connexion au pool peut échouer s'il n'est pas compatible.",
+		"startPoolLabel": "Démarrer le pool",
+		"startPoolHelp": "",
+		"appendWorkerNamesLabel": "Suffixer avec le nom d'utilisateur du mineur",
+		"appendWorkerNamesHelp": "Si activé, le nom d'utilisateur du pool sera suffix avec le nom d'utilisateur du mineur. Les deux noms seront séparés par le séparateur spécifié.",
+		"workerNameSeparatorLabel": "Séparateur",
+		"workerNameSeparatorPlaceholder": "",
+		"workerNameSeparatorHelp": "",
+		"useWorkerPasswordLabel": "Utiliser le mot de passe du mineur",
+		"useWorkerPassword": "",
+		"useWorkerPasswordHelp": "Si activé, le mot de passe du mineur sera utilisé à la place du mot de passe du pool.",
+		"mandatoryFieldsLabel": "Obligatoire",
+		"appendWorkerNameMandatoryFieldsLabel": "Obligatoire si \"Suffixer avec le nom d'utilisateur du mineur\" n'est pas activé",
+		"userWorkerPaswwordMandatoryFieldsLabel": "Obligatoire si \"Utiliser le mot de passe du mineur\" n'est pas activé",
+		"validateButtonLabel": "Ajouter",
+		"cancelButtonLabel": "Annuler"
+	},
+
+	"editPoolPopup": 
+	{
+		"title": "Edition du pool __poolName__",
+		"closeButtonLabel": "Fermer",
+		"poolHostLabel": "URL du pool",
+		"poolHostPlaceholder": "eu.pool.com:3333",
+		"poolHostHelp": "L'URL du pool sans stratum+tcp://",
+		"usernameLabel": "Nom d'utilisateur",
+		"usernamePlaceholder": "",
+		"usernameHelp": "",
+		"passwordLabel": "Mot de passe",
+		"passwordPlaceholder": "",
+		"passwordHelp": "",
+		"priorityLabel": "Priorité",
+		"priorityPlaceholder": "",
+		"priorityHelp": "",
+		"weightLabel": "Poids",
+		"weightPlaceholder": "",
+		"weightHelp": "",
+		"enableExtranonceSubscribeLabel": "Abonnement au changement d'extranonce",
+		"enableExtranonceSubscribeHelp": "A activer seulement si le pool est compatible (Nicehash par example).La connexion au pool peut échouer s'il n'est pas compatible.",
+		"appendWorkerNamesLabel": "Suffixer avec le nom d'utilisateur du mineur",
+		"appendWorkerNamesHelp": "Si activé, le nom d'utilisateur du pool sera suffix avec le nom d'utilisateur du mineur. Les deux noms seront séparés par le séparateur spécifié.",
+		"workerNameSeparatorLabel": "Séparateur",
+		"workerNameSeparatorPlaceholder": "",
+		"workerNameSeparatorHelp": "",
+		"useWorkerPasswordLabel": "Utiliser le mot de passe du mineur",
+		"useWorkerPassword": "",
+		"useWorkerPasswordHelp": "Si activé, le mot de passe du mineur sera utilisé à la place du mot de passe du pool.",
+		"mandatoryFieldsLabel": "Si modifié, le pool va redémarrer pour prendre en compte les modifications.",
+		"appendWorkerNameMandatoryFieldsLabel": "Obligatoire si \"Suffixer avec le nom d'utilisateur du mineur\" n'est pas activé",
+		"userWorkerPaswwordMandatoryFieldsLabel": "Obligatoire si \"Utiliser le mot de passe du mineur\" n'est pas activé",
+		"validateButtonLabel": "Mettre à jour",
+		"cancelButtonLabel": "Annuler"
+	},
+
+	"usersPage": 
+	{
+		"title": "Liste d'utilisateurs",
+		"refreshButtonLabel": "Rafraichir",
+		"autoRefresh": "Rafraichissement dans __count__ seconde.",
+		"autoRefresh_plural": "Rafraichissement dans __count__ secondes.",
+		"autoRefresh_undefinite": "Rafraichissement dans -- seconde.",
+		"banUser": 
+        {
+            "confirmationPopup": 
+            {
+                "title": "Confirmer le bannissement de l'utilisateur",
+                "message": "Etes-vous sûr de vouloir bannir l'utilisateur __username__ ? L'utilisateur sera alors banni jusqu'au prochain redémarrage du proxy."
+            }
+        }
+	},
+
+	"userItem": 
+	{
+		"firstConnectionDateLabel": "Date de première connexion",
+		"lastShareSubmittedLabel": "Dernier share soumis",
+		"acceptedHashrateLabel": "Puissance de calcul acceptée",
+		"rejectedHashrateLabel": "Puissance de calcul rejetée",
+		"acceptedDifficultyLabel": "Difficulté acceptée",
+        "rejectedDifficultyLabel": "Difficulté rejetée",
+        "acceptedShareNumberLabel": "Shares acceptés",
+        "rejectedShareNumberLabel": "Shares rejetés",
+		"numberOfConnectionsLabel": "Nombre de connections",
+		"kickButtonLabel": "Déconnecter",
+		"banButtonLabel": "Bannir",
+		"chart": 
+		{
+			"title": "Puissance de calcul",
+			"xAxisTitle": "Date",
+			"yAxisTitle": "Puissance de calcul",
+			"tooltipAcceptedHashrate": "Accepté",
+			"tooltipRejectedHashrate": "Rejeté",
+			"zoom1Hour": "1h",
+			"zoom1Day": "1j",
+			"zoom1Week": "1sem.",
+			"zoom1Month": "1m.",
+			"zoom1Year": "1a",
+			"zoomAll": "Tout"
+		}
+	},
+	
+	"logsPage": {
+		"title": "Logs",
+		"traceLevel": "TRACE",
+		"debugLevel": "DEBUG",
+		"infoLevel": "INFO",
+		"warnLevel": "WARN",
+		"errorLevel": "ERROR",
+		"fatalLevel": "FATAL",
+		"offLevel": "OFF",
+		"autoScrollLabel": "Activer le scroll automatique"
+	},
+    
+    "connectionsPage": {
+       "autoRefresh": "Rafraichissement dans __count__ seconde.",
+       "autoRefresh_plural": "Rafraichissement dans __count__ secondes.",
+       "autoRefresh_undefinite": "Rafraichissement dans -- secondes.",
+       "banIp": 
+       {
+            "confirmationPopup": 
+            {
+                "title": "Confirmer le bannissement de l'IP",
+                "message": "Etes-vous sûr de vouloir bannir l'IP __ip__ ? L'IP sera alors bannie jusqu'au prochain redémarrage du proxy."
+            }
+       },
+       "kickIp": 
+       {
+            "confirmationPopup": 
+            {
+                "title": "Confirmer la déconnexion de l'IP",
+                "message": "Etes-vous sûr de vouloir déconnecter l'IP __ip__ ? Toutes les connexions avec cette IP seront déconnectées."
+            }
+        }
+    },
+	
+	"connectionItem": {
+       "remoteHostLabel": "Adresse distante",
+       "remotePortLabel": "Port distant",
+       "authorizedUsersLabel": "Utilisateurs autorisés",
+       "acceptedHashrateLabel": "Puissance de calcul acceptée",
+       "rejectedHashrateLabel": "Puissance de calcul rejetée",
+       "isActiveSinceLabel": "Actif depuis",
+       "workingOnPoolLabel": "Attribuée au pool",
+       "extranonceNotificationSupportedLabel": "Support du changement d'extranonce",
+       "connectionTypeLabel": "Type de connection",
+       "workerVersionLabel": "Version du mineur",
+       "kickConnectionButtonLabel": "Déconnecter la Connexion",
+       "kickIpButtonLabel": "Déconnecter l'IP",
+       "banIpButtonLabel": "Bannir l'IP",
+       "workerVersionUnknown": "Inconnue"
+    },
+	
+	"misc": {
+		"notAvailable": "Pas encore disponible"
+	}
+}

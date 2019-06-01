@@ -52,7 +52,7 @@ public class Constants {
 
     public static final String ERROR_MESSAGE_SUBSCRIBE_EXTRANONCE = "Method 'subscribe' not found for service 'mining.extranonce'";
 
-    public static final String VERSION = "stratehm-stratum-proxy-" + ConfigurationManager.getVersion();
+    public static final String VERSION = "java-stratum-" + ConfigurationManager.getVersion();
 
     public static final double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE = Math.pow(2, 32);
     public static final double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE_SCRYPT = Math.pow(2, 16);
