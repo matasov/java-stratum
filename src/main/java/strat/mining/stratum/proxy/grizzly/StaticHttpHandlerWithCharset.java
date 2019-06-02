@@ -50,7 +50,7 @@ public class StaticHttpHandlerWithCharset extends StaticHttpHandler {
 	@Override
 	protected boolean handle(String uri, Request request, Response response) throws Exception {
 		LOGGER.trace("Requested resource: {}.", uri);
-
+		System.out.println(this.getClass()+"::handle");
 		// Set the content type before calling the
 		// super.handle method to set the character
 		// encoding. Since the content type will already be

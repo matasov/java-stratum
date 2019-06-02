@@ -107,10 +107,10 @@ public class ConfigurationManager {
 	private boolean disableStratum = false;
 	private boolean disableApi = false;
 
-	private String apiUser;
-	private String apiPassword;
-	private Boolean apiReadOnlyAccessEnabled = false;
-	private Boolean apiEnableSsl;
+	private String apiUser = "admin";
+	private String apiPassword = "k!f_Jl8u8;";
+	private Boolean apiReadOnlyAccessEnabled = true;
+	private Boolean apiEnableSsl = false;
 
 	private String ipVersion = Constants.IP_VERSION_AUTO;
 

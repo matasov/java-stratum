@@ -44,16 +44,15 @@
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                         <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="https://invensio.com" target="_blank" data-i18n="navbar.title">Stratum
-                        Proxy</a>
+                    <a class="navbar-brand" href="http://mpool24.com" target="_blank" data-i18n="navbar.title">MPool24</a>
                 </div>
                 <div class="collapse navbar-collapse">
                     <ul id="navbarUl" class="nav navbar-nav">
-                        <li><a id="registerTabButton" href="#register" page-name="regPage"
+                        <li class="active"><a id="registerTabButton"
                                 data-i18n="navbar.poolsItem">Register</a></li>
-                        <li class="active"><a id="loginTabButton" href="#login" page-name="logPage"
+                        <li><a id="loginTabButton" href="http://mpool24.com/login.html"
                                 data-i18n="navbar.poolsItem">Login</a></li>
-                        <li><a id="rulesTabButton" href="#rules" page-name="rulPage"
+                        <li><a id="rulesTabButton" href="http://mpool24.com/index.html"
                                 data-i18n="navbar.poolsItem">Rules</a></li>
                     </ul>
 
@@ -65,7 +64,7 @@
                 <div class="container container-sm-height">
                     <div class="row row-sm-height">
                         <div class="col-sm-3 col-sm-height col-middle">
-                            <h1 data-i18n="poolsPage.title">Login</h1>
+                            <h1 data-i18n="poolsPage.title">Register</h1>
                         </div>
                         <div class="panel-heading">
                             <h3 class="panel-title"></h3>
@@ -78,6 +77,10 @@
                             <div>
                                 <label class="col-sm-3 control-label">password</label>
                                 <input type="text" id="password" name="password">
+                            </div>
+                            <div>
+                                <label class="col-sm-3 control-label">repeat</label>
+                                <input type="text" id="repeatPassword" name="repeatPassword">
                             </div>
                             <div>
                                 <label class="col-sm-3 control-label"></label>
@@ -134,18 +137,18 @@
             // var $form = $(this),
             //     url = "proxy/user/register";//$form.attr('action');
             let payload = {};
-            payload['login'] = $('#name').val();
+            payload['name'] = $('#name').val();
 
             payload['password'] = $('#password').val();
 
-            payload['repeatPassword'] = $('#repeat').val();
+            payload['repeatPassword'] = $('#repeatPassword').val();
 
             $.ajax({
                 type: "POST",
 
                 contentType: "application/json; charset=utf-8",
                 //url: "proxy/user/register",
-                url: "proxy/login",
+                url: "proxy/register",
                 dataType: "json",
                 async: false,
                 cache: false,
