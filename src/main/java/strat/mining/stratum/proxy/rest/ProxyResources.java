@@ -813,6 +813,8 @@ public class ProxyResources {
     } else if (register.getName().indexOf("'") >= 0 || register.getName().indexOf("\\") >= 0
         || register.getPassword().indexOf("\\") >= 0 || register.getPassword().indexOf("\\") >= 0) {
       errorMessage = "Unexpected symbol!";
+    } else if (register.getName().length() < 4 || register.getPassword().length() < 4) {
+      errorMessage = "Username and password must be at least 4 characters!";
     } else if (!register.getPassword().equals(register.getRepeatPassword())) {
       errorMessage = "Passwords doesn't match!";
     } else {
@@ -835,7 +837,7 @@ public class ProxyResources {
     }
     if (!errorMessage.equals("")) {
       response = Response.status(Response.Status.FORBIDDEN)
-          .entity("{\"error\": \"" + errorMessage + "\"}").build();
+          .entity("{\"message\": \"" + errorMessage + "\"}").build();
     } else {
       response =
           Response.status(Response.Status.OK).entity("{\"session\": \"" + session + "\"}").build();
@@ -849,79 +851,110 @@ public class ProxyResources {
   @PubliclyAvailable
   public Response tryLogin(RegisterDTO register, @CookieParam("session") Cookie cookie) {
     String errorMessage = "";
-
+    String session = null;
+    SiteUserRepositoryImplemented repo = new SiteUserRepositoryImplemented();
     if (cookie != null && cookie.getValue() != null) {
-      String session = cookie.getValue();
+      session = cookie.getValue();
+      try {
+
+        SiteUserImplemented presentedUserFromSession =
+            (SiteUserImplemented) repo.getSiteUserBySession(session);
+        if (presentedUserFromSession != null) {
+          presentedUserFromSession.setTimeSession(new Date(System.currentTimeMillis() + 3600000));
+          repo.updateSiteUser(presentedUserFromSession);
+        } else {
+          errorMessage = "User not found.";
+        }
+      } catch (Exception ex) {
+        errorMessage = "DB error.";
+      }
+    }
+    if (errorMessage.equals("User not found."))
+      if (register == null || register.getName() == null || register.getPassword() == null
+          || register.getName().equals("") || register.getPassword().equals("")) {
+        errorMessage = "Name or password empty!";
+      } else if (register.getName().indexOf("'") >= 0 || register.getName().indexOf("\\") >= 0
+          || register.getPassword().indexOf("\\") >= 0
+          || register.getPassword().indexOf("\\") >= 0) {
+        errorMessage = "Unexpected symbol!";
+      } else if (!register.getPassword().equals(register.getRepeatPassword())) {
+        errorMessage = "Passwords doesn't match!";
+      } else {
+        try {
+          SiteUserImplemented presentedUserByName =
+              (SiteUserImplemented) repo.getSiteUserByName(register.getName());
+          if (presentedUserByName != null
+              && presentedUserByName.getPassword().equals(register.getPassword())) {
+            errorMessage = "";
+            presentedUserByName.setTimeSession(new Date(System.currentTimeMillis() + 3600000));
+            session = UUID.randomUUID().toString();
+            presentedUserByName.setSession(session);
+            repo.updateSiteUser(presentedUserByName);
+            errorMessage = "";
+          }
+        } catch (Exception ex) {
+          errorMessage = "DB error.";
+        }
+      }
+
+    Response response;
+
+    if (!errorMessage.equals("")) {
+      response = Response.status(Response.Status.FORBIDDEN)
+          .entity("{\"message\": \"" + errorMessage + "\"}").build();
+    } else {
+      response =
+          Response.status(Response.Status.OK).entity("{\"session\": \"" + session + "\"}").build();
+    }
+    return response;
+  }
+
+  @POST
+  @Path("customer")
+  @ApiOperation(value = "Registration new user.", response = RegisterDTO.class)
+  @PubliclyAvailable
+  public Response customerSelfPage(@CookieParam("session") Cookie cookie) {
+    System.out.println("session: " + cookie);
+    String errorMessage = "";
+    UserDetailsDTO result = null;
+    String session = null;
+    if (cookie != null && cookie.getValue() != null) {
+      session = cookie.getValue();
       try {
         SiteUserRepositoryImplemented repo = new SiteUserRepositoryImplemented();
         SiteUserImplemented presentedUserFromSession =
             (SiteUserImplemented) repo.getSiteUserBySession(session);
-        if (presentedUserFromSession == null) {
-          errorMessage = "User not found.";
-          if (register == null || register.getName() == null || register.getPassword() == null
-              || register.getName().equals("") || register.getPassword().equals("")) {
-            errorMessage = "Name or password empty!";
-          } else if (register.getName().indexOf("'") >= 0 || register.getName().indexOf("\\") >= 0
-              || register.getPassword().indexOf("\\") >= 0
-              || register.getPassword().indexOf("\\") >= 0) {
-            errorMessage = "Unexpected symbol!";
-          } else if (!register.getPassword().equals(register.getRepeatPassword())) {
-            errorMessage = "Passwords doesn't match!";
-          } else {
-            SiteUserImplemented presentedUserByName =
-                (SiteUserImplemented) repo.getSiteUserByName(register.getName());
-            if (presentedUserByName != null
-                && presentedUserByName.getPassword().equals(register.getPassword())) {
-              errorMessage = "";
-              presentedUserByName.setTimeSession(new Date(System.currentTimeMillis() + 3600000));
-              repo.updateSiteUser(presentedUserByName);
+        if (presentedUserFromSession != null) {
+          List<User> users = stratumProxyManager.getUsers();
+          if (users != null) {
+            for (User user : users) {
+              if (user.getName().toLowerCase().equals(presentedUserFromSession.getName())) {
+                result = convertUserToDTO(user);
+                break;
+              }
             }
           }
+          if (result == null) {
+            result = new UserDetailsDTO();
+            result.setName(presentedUserFromSession.getName());
+          }
         } else {
-          presentedUserFromSession.setTimeSession(new Date(System.currentTimeMillis() + 3600000));
-          repo.updateSiteUser(presentedUserFromSession);
+          errorMessage = "User not found.";
         }
       } catch (Exception ex) {
         errorMessage = "DB error.";
       }
-
     }
 
-    String session = UUID.randomUUID().toString();
     Response response;
-    if (register == null || register.getName() == null || register.getPassword() == null
-        || register.getRepeatPassword() == null || register.getName().equals("")
-        || register.getPassword().equals("") || register.getRepeatPassword().equals("")) {
-      errorMessage = "Name or password empty!";
-    } else if (register.getName().indexOf("'") >= 0 || register.getName().indexOf("\\") >= 0
-        || register.getPassword().indexOf("\\") >= 0 || register.getPassword().indexOf("\\") >= 0) {
-      errorMessage = "Unexpected symbol!";
-    } else if (!register.getPassword().equals(register.getRepeatPassword())) {
-      errorMessage = "Passwords doesn't match!";
-    } else {
-      try {
-        SiteUserRepositoryImplemented repo = new SiteUserRepositoryImplemented();
-        if (repo.getSiteUserByName(register.getName()) != null) {
-          errorMessage = "User " + register.getName() + " is presented.";
-        } else {
-          SiteUserImplemented newUser = new SiteUserImplemented();
-          newUser.setId(UUID.randomUUID());
-          newUser.setName(register.getName());
-          newUser.setSession(session);
-          newUser.setTimeSession(new Date());
-          newUser.setCreationTime(new Date(System.currentTimeMillis() + 3600000));
-          repo.addSiteUser(newUser);
-        }
-      } catch (Exception ex) {
-        errorMessage = "DB error.";
-      }
-    }
+
     if (!errorMessage.equals("")) {
+      System.out.println("fail respond");
       response = Response.status(Response.Status.FORBIDDEN)
-          .entity("{\"error\": \"" + errorMessage + "\"}").build();
+          .entity("{\"message\": \"" + errorMessage + "\"}").build();
     } else {
-      response =
-          Response.status(Response.Status.OK).entity("{\"session\": \"" + session + "\"}").build();
+      System.out.println("found user: " + result);
+      response = Response.status(Response.Status.OK).entity(result).build();
     }
     return response;
   }
