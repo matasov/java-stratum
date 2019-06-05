@@ -49,6 +49,7 @@ import strat.mining.stratum.proxy.configuration.model.Configuration;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.manager.strategy.PriorityFailoverStrategyManager;
+import strat.mining.stratum.proxy.manager.strategy.PriorityFailoverStrategyWithDBManager;
 import strat.mining.stratum.proxy.pool.Pool;
 
 /**
@@ -99,7 +100,7 @@ public class ConfigurationManager {
 	private boolean noMidsate = false;
 	private boolean validateGetworkShares = false;
 
-	private String poolSwitchingStrategy = PriorityFailoverStrategyManager.NAME;
+	private String poolSwitchingStrategy = PriorityFailoverStrategyWithDBManager.NAME;
 
 	private Integer weightedRoundRobinRoundDuration = Constants.DEFAULT_WEIGHTED_ROUND_ROBIN_ROUND_DURATION;
 
@@ -153,7 +154,7 @@ public class ConfigurationManager {
 			cliParser.printUsage();
 			System.exit(0);
 		} else if (cliParser.isVersionRequested()) {
-			String version = "java-stratum by Stratehm. GPLv3 Licence. Version " + Constants.VERSION;
+			String version = "java-stratum by Stratehm. GPLv3 Licence. Version " + "java-stratum-" + ConfigurationManager.getVersion();
 			System.out.println(version);
 			System.exit(0);
 		} else {
@@ -338,7 +339,7 @@ public class ConfigurationManager {
 				pool.setUseWorkerPassword(useWorkerPassword);
 				pool.setWeight(poolWeight);
 				try {
-					pool.setEnabled(isEnabled);
+					pool.setIsEnabled(isEnabled);
 				} catch (Exception e) {
 					// Should never happens. Else, it is a bug.
 					System.err.println("Error during creation of pool " + pool.getName() + " (cause: enabled value)");

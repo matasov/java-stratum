@@ -42,7 +42,6 @@ public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyMana
 
 	public PriorityFailoverStrategyManager(ProxyManager proxyManager) {
 		super(proxyManager);
-
 		checkConnectionsBinding();
 	}
 
@@ -132,7 +131,7 @@ public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyMana
 			}
 		});
 		for (Pool pool : pools) {
-			if (pool.isReady() && pool.isEnabled() && pool.isStable()) {
+			if (pool.getIsReady() && pool.getIsEnabled() && pool.getIsStable()) {
 				newPool = pool;
 				break;
 			}

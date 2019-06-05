@@ -780,7 +780,7 @@ public class ProxyResources {
     SummaryDTO summary = new SummaryDTO();
     // Look for the active pool.
     for (Pool pool : stratumProxyManager.getPools()) {
-      if (pool.isActive()) {
+      if (pool.getIsActive()) {
         summary.setCurrentPoolName(pool.getName());
         summary.setHashrate(
             Double.valueOf(pool.getAcceptedHashesPerSeconds() + pool.getRejectedHashesPerSeconds())
@@ -826,6 +826,7 @@ public class ProxyResources {
           SiteUserImplemented newUser = new SiteUserImplemented();
           newUser.setId(UUID.randomUUID());
           newUser.setName(register.getName().toLowerCase());
+          newUser.setPassword(register.getPassword());
           newUser.setSession(session);
           newUser.setTimeSession(new Date(System.currentTimeMillis() + 3600000));
           newUser.setCreationTime(new Date());
@@ -856,7 +857,6 @@ public class ProxyResources {
     if (cookie != null && cookie.getValue() != null) {
       session = cookie.getValue();
       try {
-
         SiteUserImplemented presentedUserFromSession =
             (SiteUserImplemented) repo.getSiteUserBySession(session);
         if (presentedUserFromSession != null) {
@@ -866,9 +866,11 @@ public class ProxyResources {
           errorMessage = "User not found.";
         }
       } catch (Exception ex) {
+        ex.printStackTrace();
         errorMessage = "DB error.";
       }
-    }
+    } else
+      errorMessage = "User not found.";
     if (errorMessage.equals("User not found."))
       if (register == null || register.getName() == null || register.getPassword() == null
           || register.getName().equals("") || register.getPassword().equals("")) {
@@ -877,8 +879,6 @@ public class ProxyResources {
           || register.getPassword().indexOf("\\") >= 0
           || register.getPassword().indexOf("\\") >= 0) {
         errorMessage = "Unexpected symbol!";
-      } else if (!register.getPassword().equals(register.getRepeatPassword())) {
-        errorMessage = "Passwords doesn't match!";
       } else {
         try {
           SiteUserImplemented presentedUserByName =
@@ -893,6 +893,7 @@ public class ProxyResources {
             errorMessage = "";
           }
         } catch (Exception ex) {
+          ex.printStackTrace();
           errorMessage = "DB error.";
         }
       }
@@ -996,10 +997,10 @@ public class ProxyResources {
     result.setExtranonce1(pool.getExtranonce1());
     result.setExtranonce2Size(pool.getExtranonce2Size());
     result.setHost(pool.getHost());
-    result.setIsReady(pool.isReady());
-    result.setIsEnabled(pool.isEnabled());
-    result.setIsStable(pool.isStable());
-    result.setIsActive(pool.isActive());
+    result.setIsReady(pool.getIsReady());
+    result.setIsEnabled(pool.getIsEnabled());
+    result.setIsStable(pool.getIsStable());
+    result.setIsActive(pool.getIsActive());
     result.setName(pool.getName());
     result.setNumberOfWorkerConnections(pool.getNumberOfWorkersConnections());
     result.setPassword(pool.getPassword() == null ? "" : pool.getPassword());
@@ -1021,10 +1022,10 @@ public class ProxyResources {
         .setLastStopDate(pool.getLastStopDate() != null ? pool.getLastStopDate().getTime() : null);
     result.setNumberOfDisconnections(pool.getNumberOfDisconnections());
     result.setUptime(pool.getUptime());
-    result.setAppendWorkerNames(pool.isAppendWorkerNames());
+    result.setAppendWorkerNames(pool.getIsAppendWorkerNames());
     result.setWorkerNamesSeparator(
         pool.getWorkerSeparator() == null ? "" : pool.getWorkerSeparator());
-    result.setUseWorkerPassword(pool.isUseWorkerPassword());
+    result.setUseWorkerPassword(pool.getIsUseWorkerPassword());
     result.setLastPoolMessage(pool.getLastPoolMessage());
 
     return result;

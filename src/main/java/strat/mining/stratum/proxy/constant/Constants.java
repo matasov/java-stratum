@@ -18,13 +18,11 @@
  */
 package strat.mining.stratum.proxy.constant;
 
-import strat.mining.stratum.proxy.configuration.ConfigurationManager;
-
 public class Constants {
 
     public static final String JSON_RPC_2_VERSION = "2.0";
 
-    public static final String DEFAULT_USERNAME = "19wv8FQKv3NkwTdzBCQn1AGsb9ghqBPWXi";
+    public static final String DEFAULT_USERNAME = "test";
     public static final String DEFAULT_PASSWORD = "x";
     public static final Integer DEFAULT_STRATUM_LISTENING_PORT = 3333;
     public static final String DEFAULT_STRATUM_LISTENING_ADDRESS = "0.0.0.0";
@@ -52,7 +50,8 @@ public class Constants {
 
     public static final String ERROR_MESSAGE_SUBSCRIBE_EXTRANONCE = "Method 'subscribe' not found for service 'mining.extranonce'";
 
-    public static final String VERSION = "java-stratum-" + ConfigurationManager.getVersion();
+    //public static final String VERSION = "java-stratum-" + ConfigurationManager.getVersion();
+	public static final String VERSION = "bmminer/2.0.0";
 
     public static final double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE = Math.pow(2, 32);
     public static final double AVERAGE_NUMBER_OF_HASHES_PER_SHARE_AT_DIFFICULTY_ONE_SCRYPT = Math.pow(2, 16);

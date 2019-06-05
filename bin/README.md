@@ -1622,8 +1622,4 @@ GPLv3
 
 
 
-Of course, if you want make a little donation, you are welcome :)
-
-BTC: 19wv8FQKv3NkwTdzBCQn1AGsb9ghqBPWXi
-
     

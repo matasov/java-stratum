@@ -18,6 +18,7 @@
  */
 package strat.mining.stratum.proxy.network;
 
+import java.beans.Transient;
 import java.net.InetAddress;
 
 public interface Connection {
@@ -46,6 +47,7 @@ public interface Connection {
 	 * 
 	 * @return
 	 */
+	@Transient
 	public Integer getRemotePort();
 
 }

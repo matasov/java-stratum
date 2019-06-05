@@ -25,7 +25,8 @@ public class SiteUserRepositoryImplemented implements SiteUserRepository {
     try {
       workStatement.execute(sql);
     } finally {
-      workStatement.close();
+      if (workStatement != null)
+        workStatement.close();
     }
   }
 
@@ -37,7 +38,8 @@ public class SiteUserRepositoryImplemented implements SiteUserRepository {
     try {
       workStatement.execute(sql);
     } finally {
-      workStatement.close();
+      if (workStatement != null)
+        workStatement.close();
     }
   }
 
@@ -51,7 +53,8 @@ public class SiteUserRepositoryImplemented implements SiteUserRepository {
     try {
       workStatement.execute(sql);
     } finally {
-      workStatement.close();
+      if (workStatement != null)
+        workStatement.close();
     }
   }
 
@@ -59,12 +62,14 @@ public class SiteUserRepositoryImplemented implements SiteUserRepository {
   public SiteUser getSiteUserByID(UUID siteUserID) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql = String.format("select * from %1$s where id = '%2$s'", SITE_USER_TBL, siteUserID);
+    ResultSet rs = null;
     try {
-      ResultSet rs = workStatement.executeQuery(sql);
+      rs = workStatement.executeQuery(sql);
       while (rs.next()) {
         SiteUserImplemented row = new SiteUserImplemented();
         row.setId(UUID.fromString(rs.getString("id")));
         row.setName(rs.getString("name"));
+        row.setPassword(rs.getString("password"));
         row.setCreationTime(rs.getDate("creation_time"));
         row.setSession(rs.getString("session"));
         row.setTimeSession(rs.getDate("time_session"));
@@ -72,16 +77,22 @@ public class SiteUserRepositoryImplemented implements SiteUserRepository {
       }
       rs.close();
     } finally {
-      workStatement.close();
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
     }
     return null;
   }
 
   @Override
   public SiteUser getSiteUserBySession(String siteUserSession) throws SQLException, IOException {
+    if (siteUserSession == null || siteUserSession.equals("null")) {
+      return null;
+    }
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
-    String sql =
-        String.format("select * from %1$s where session = '%2$s' and time_session > now()", SITE_USER_TBL, siteUserSession);
+    String sql = String.format("select * from %1$s where session = '%2$s' and time_session > now()",
+        SITE_USER_TBL, siteUserSession);
 
     ResultSet rs = null;
     try {
@@ -90,20 +101,23 @@ public class SiteUserRepositoryImplemented implements SiteUserRepository {
         SiteUserImplemented row = new SiteUserImplemented();
         row.setId(UUID.fromString(rs.getString("id")));
         row.setName(rs.getString("name"));
+        row.setPassword(rs.getString("password"));
         row.setCreationTime(rs.getDate("creation_time"));
         row.setSession(rs.getString("session"));
         row.setTimeSession(rs.getDate("time_session"));
         return row;
       }
     } finally {
-      rs.close();
-      workStatement.close();
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
     }
     return null;
   }
-  
+
   @Override
-  public SiteUser getSiteUserByName(String siteUserName) throws SQLException, IOException{
+  public SiteUser getSiteUserByName(String siteUserName) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql =
         String.format("select * from %1$s where name = LOWER('%2$s')", SITE_USER_TBL, siteUserName);
@@ -115,14 +129,17 @@ public class SiteUserRepositoryImplemented implements SiteUserRepository {
         SiteUserImplemented row = new SiteUserImplemented();
         row.setId(UUID.fromString(rs.getString("id")));
         row.setName(rs.getString("name"));
+        row.setPassword(rs.getString("password"));
         row.setCreationTime(rs.getDate("creation_time"));
         row.setSession(rs.getString("session"));
         row.setTimeSession(rs.getDate("time_session"));
         return row;
       }
     } finally {
-      rs.close();
-      workStatement.close();
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
     }
     return null;
   }
@@ -134,21 +151,25 @@ public class SiteUserRepositoryImplemented implements SiteUserRepository {
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);
-      if (rs != null && rs.getFetchSize() > 0) {
+      if (rs != null) {
         List<SiteUser> resultSet = new ArrayList<>(rs.getFetchSize());
         while (rs.next()) {
           SiteUserImplemented row = new SiteUserImplemented();
           row.setId(UUID.fromString(rs.getString("id")));
           row.setName(rs.getString("name"));
+          row.setPassword(rs.getString("password"));
           row.setCreationTime(rs.getDate("creation_time"));
           row.setSession(rs.getString("session"));
           row.setTimeSession(rs.getDate("time_session"));
           resultSet.add(row);
         }
+        return resultSet;
       }
     } finally {
-      rs.close();
-      workStatement.close();
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
     }
     return null;
   }

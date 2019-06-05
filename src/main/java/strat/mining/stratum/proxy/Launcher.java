@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.security.KeyFactory;
@@ -33,8 +34,11 @@ import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import javax.ws.rs.core.UriBuilder;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
@@ -66,20 +70,27 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.kohsuke.args4j.CmdLineException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import strat.mining.stratum.proxy.callback.ConnectionClosedCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.database.DatabaseManager;
 import strat.mining.stratum.proxy.database.PostgresqlManager;
+import strat.mining.stratum.proxy.database.repo.GetWorkerConnectionRepositoryImplemented;
+import strat.mining.stratum.proxy.database.repo.PoolRepositoryImplemented;
+import strat.mining.stratum.proxy.database.repo.StratumUserRepositoryImplemented;
 import strat.mining.stratum.proxy.grizzly.CLStaticHttpHandlerWithIndexSupport;
 import strat.mining.stratum.proxy.grizzly.StaticHttpHandlerWithCharset;
 import strat.mining.stratum.proxy.manager.HashrateRecorder;
 import strat.mining.stratum.proxy.manager.ProxyManager;
+import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.rest.ProxyResources;
 import strat.mining.stratum.proxy.rest.authentication.AuthenticationAddOn;
 import strat.mining.stratum.proxy.rest.ssl.SSLRedirectAddOn;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.worker.GetworkRequestHandler;
+import strat.mining.stratum.proxy.worker.GetworkWorkerConnection;
+import strat.mining.stratum.proxy.worker.WorkerConnection;
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream;
 
 public class Launcher {
@@ -106,11 +117,11 @@ public class Launcher {
   private static HttpServer apiHttpServer;
 
   private static HttpServer getWorkHttpServer;
-  
+
   public static void main(String[] args) {
 
     try {
-      
+
       ConfigurationManager configurationManager = ConfigurationManager.getInstance();
       configurationManager.loadConfiguration(args);
       LOGGER = LoggerFactory.getLogger(Launcher.class);
@@ -255,7 +266,7 @@ public class Launcher {
 
       if (ConfigurationManager.getInstance().getApiEnableSsl()) {
         System.out.println("is enable ssl...");
-        //initializeSslEngine();
+        // initializeSslEngine();
       }
 
       // Initialize the HTTP Basic Authentication
@@ -370,6 +381,32 @@ public class Launcher {
   private static void initProxyManager(ConfigurationManager configurationManager)
       throws IOException, CmdLineException {
     List<Pool> pools = configurationManager.getPools();
+    List<Pool> dbPools = null;
+    try {
+      dbPools = new PoolRepositoryImplemented().getPresentPools();
+      System.out.println("found pools from db: " + dbPools);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+
+//    try {
+//      // test
+//      new StratumUserRepositoryImplemented().addUser(new User("test" + new Random().nextInt(10)));
+//      new GetWorkerConnectionRepositoryImplemented().addWorkerConnection(
+//          new GetworkWorkerConnection(InetAddress.getByName("localhost"), null, null));
+//      System.out.println(new GetWorkerConnectionRepositoryImplemented().getPresentWorkerConnection());
+//      // end
+//      Map<String, User> users = new StratumUserRepositoryImplemented().getPresentUsers();
+//      if (users != null) {
+//        ProxyManager.getInstance().setUsers(users);
+//      }
+//    } catch (SQLException e) {
+//      e.printStackTrace();
+//    }
+    if (dbPools != null && !dbPools.isEmpty()) {
+      pools.addAll(dbPools);
+    }
     LOGGER.info("Using pools: {}.", pools);
 
     // Start the pools.

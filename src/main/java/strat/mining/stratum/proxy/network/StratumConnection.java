@@ -523,7 +523,7 @@ public abstract class StratumConnection implements Connection {
      * 
      * @return
      */
-    public boolean isConnected() {
+    public boolean getIsConnected() {
         return !socket.isClosed() && socket.isConnected();
     }
 
