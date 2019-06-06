@@ -47,6 +47,8 @@ import strat.mining.stratum.proxy.database.repo.PoolRepository;
 import strat.mining.stratum.proxy.database.repo.PoolRepositoryImplemented;
 import strat.mining.stratum.proxy.database.repo.StratumUserRepository;
 import strat.mining.stratum.proxy.database.repo.StratumUserRepositoryImplemented;
+import strat.mining.stratum.proxy.database.repo.StratumWorkerConnectionRepository;
+import strat.mining.stratum.proxy.database.repo.StratumWorkerConnectionRepositoryImplemented;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
 import strat.mining.stratum.proxy.exception.BadParameterException;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
@@ -91,8 +93,11 @@ public class ProxyManager {
   // reposirories
   StratumUserRepository stratumUserRepo = new StratumUserRepositoryImplemented();
   PoolRepository poolRepo = new PoolRepositoryImplemented();
-  GetWorkerConnectionRepository workerConnectionRepo =
+  GetWorkerConnectionRepository getWorkerConnectionRepo =
       new GetWorkerConnectionRepositoryImplemented();
+
+  StratumWorkerConnectionRepository getStratumConnectionRepo =
+      new StratumWorkerConnectionRepositoryImplemented();
 
   private static ProxyManager instance;
 
@@ -258,6 +263,11 @@ public class ProxyManager {
     Set<WorkerConnection> workerConnections = getPoolWorkerConnections(pool);
     workerConnections.add(connection);
     this.workerConnections.add(connection);
+    try {
+      getStratumConnectionRepo.addWorkerConnection(connection);
+    } catch (SQLException | IOException e) {
+      e.printStackTrace();
+    }
     LOGGER.info("New WorkerConnection {} subscribed. {} connections active on pool {}.",
         connection.getConnectionName(), workerConnections.size(), pool.getName());
 
@@ -296,7 +306,10 @@ public class ProxyManager {
       user.setSamplingHashesPeriod(
           ConfigurationManager.getInstance().getUserHashrateSamplingPeriod());
       try {
-        stratumUserRepo.addUser(user);
+        if (stratumUserRepo.getUserByName(request.getUsername()) != null)
+          stratumUserRepo.updateUserByName(user);
+        else
+          stratumUserRepo.addUser(user);
       } catch (SQLException | IOException e) {
         e.printStackTrace();
       }
@@ -488,6 +501,11 @@ public class ProxyManager {
       connections.remove(workerConnection);
     }
     ProxyManager.this.workerConnections.remove(workerConnection);
+    try {
+      getStratumConnectionRepo.removeWorkerConnection(workerConnection);
+    } catch (SQLException | IOException e) {
+      e.printStackTrace();
+    }
     LOGGER.info("Worker connection {} closed. {} connections active on pool {}. Cause: {}",
         workerConnection.getConnectionName(), connections == null ? 0 : connections.size(),
         workerConnection.getPool() != null ? workerConnection.getPool().getName() : "None",

@@ -348,16 +348,21 @@ public class GetworkRequestHandler extends HttpHandler {
                   connection.getConnectionName());
             }
           });
-
+      System.out.println(this.getClass() + "::getWorkerConnection create new connection: "
+          + workerConnection.getId());
       MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest();
       Pool pool = manager.onSubscribeRequest(workerConnection, subscribeRequest);
+      System.out.println(this.getClass() + "::getWorkerConnection try add to pool: "
+          + pool.getName() + "[" + pool.getId() + "]");
       workerConnection.rebindToPool(pool);
       workerConnections.put(address, workerConnection);
-      try {
-        workerConnectionRepo.addWorkerConnection(workerConnection);
-      } catch (SQLException | IOException e) {
-        e.printStackTrace();
-      }
+//      try {
+//        workerConnectionRepo.addWorkerConnection(workerConnection);
+//      } catch (SQLException | IOException e) {
+//        e.printStackTrace();
+//      }
+      System.out.println(this.getClass() + "::getWorkerConnection success operation: "
+          + pool.getName() + "[" + pool.getId() + "]");
     }
     try {
       checkAuthorization(workerConnection, request);

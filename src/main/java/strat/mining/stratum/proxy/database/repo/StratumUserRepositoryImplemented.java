@@ -4,15 +4,12 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import strat.mining.stratum.proxy.database.PostgresqlManager;
 import strat.mining.stratum.proxy.model.User;
-import strat.mining.stratum.proxy.pool.Pool;
 
 public class StratumUserRepositoryImplemented implements StratumUserRepository {
 
@@ -46,7 +43,8 @@ public class StratumUserRepositoryImplemented implements StratumUserRepository {
   @Override
   public void updateUser(User user) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
-    String sql = String.format("update %1$s set user = '%3$s' where id = '%2$s'", USER_TBL,
+    System.out.println("try update user: " + new ObjectMapper().writeValueAsString(user));
+    String sql = String.format("update %1$s set json = '%3$s' where %1$s.id = '%2$s'", USER_TBL,
         user.getId(), new ObjectMapper().writeValueAsString(user));
     try {
       workStatement.execute(sql);
@@ -63,7 +61,7 @@ public class StratumUserRepositoryImplemented implements StratumUserRepository {
     try {
       rs = workStatement.executeQuery(sql);
       while (rs.next()) {
-        User row = new ObjectMapper().readValue(rs.getString("user"), User.class);
+        User row = new ObjectMapper().readValue(rs.getString("json"), User.class);
         return row;
       }
       rs.close();
@@ -86,7 +84,7 @@ public class StratumUserRepositoryImplemented implements StratumUserRepository {
       if (rs != null) {
         Map<String, User> resultSet = new HashMap<>(rs.getFetchSize());
         while (rs.next()) {
-          User row = new ObjectMapper().readValue(rs.getString("user"), User.class);
+          User row = new ObjectMapper().readValue(rs.getString("json"), User.class);
           resultSet.put(row.getName(), row);
         }
         return resultSet;
@@ -98,6 +96,41 @@ public class StratumUserRepositoryImplemented implements StratumUserRepository {
         workStatement.close();
     }
     return null;
+  }
+
+  @Override
+  public User getUserByName(String userName) throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    String sql =
+        String.format("SELECT * FROM FROM %1$s where json ->> 'name' = '%2$s'", USER_TBL, userName);
+    ResultSet rs = null;
+    try {
+      rs = workStatement.executeQuery(sql);
+      while (rs.next()) {
+        User row = new ObjectMapper().readValue(rs.getString("json"), User.class);
+        return row;
+      }
+      rs.close();
+    } finally {
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
+    }
+    return null;
+  }
+
+  @Override
+  public void updateUserByName(User user) throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    System.out.println("try update user: " + new ObjectMapper().writeValueAsString(user));
+    String sql = String.format("update %1$s set json = '%3$s' where json ->> 'name' = '%2$s'",
+        USER_TBL, user.getId(), new ObjectMapper().writeValueAsString(user));
+    try {
+      workStatement.execute(sql);
+    } finally {
+      workStatement.close();
+    }
   }
 
 }

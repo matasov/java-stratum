@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.security.KeyFactory;
@@ -78,6 +79,7 @@ import strat.mining.stratum.proxy.database.PostgresqlManager;
 import strat.mining.stratum.proxy.database.repo.GetWorkerConnectionRepositoryImplemented;
 import strat.mining.stratum.proxy.database.repo.PoolRepositoryImplemented;
 import strat.mining.stratum.proxy.database.repo.StratumUserRepositoryImplemented;
+import strat.mining.stratum.proxy.database.repo.StratumWorkerConnectionRepositoryImplemented;
 import strat.mining.stratum.proxy.grizzly.CLStaticHttpHandlerWithIndexSupport;
 import strat.mining.stratum.proxy.grizzly.StaticHttpHandlerWithCharset;
 import strat.mining.stratum.proxy.manager.HashrateRecorder;
@@ -90,6 +92,7 @@ import strat.mining.stratum.proxy.rest.ssl.SSLRedirectAddOn;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.worker.GetworkRequestHandler;
 import strat.mining.stratum.proxy.worker.GetworkWorkerConnection;
+import strat.mining.stratum.proxy.worker.StratumWorkerConnection;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream;
 
@@ -158,6 +161,7 @@ public class Launcher {
         e.printStackTrace();
       }
     }
+
   }
 
   /**
@@ -390,23 +394,30 @@ public class Launcher {
     }
 
 
+    // try {
+    // // test
+    // new StratumUserRepositoryImplemented().addUser(new User("test" + new Random().nextInt(10)));
+    // new GetWorkerConnectionRepositoryImplemented().addWorkerConnection(
+    // new GetworkWorkerConnection(InetAddress.getByName("localhost"), null, null));
+    // System.out.println(new
+    // GetWorkerConnectionRepositoryImplemented().getPresentWorkerConnection());
+    // // end
+    // Map<String, User> users = new StratumUserRepositoryImplemented().getPresentUsers();
+    // if (users != null) {
+    // ProxyManager.getInstance().setUsers(users);
+    // }
+    // } catch (SQLException e) {
+    // e.printStackTrace();
+    // }
 //    try {
-//      // test
-//      new StratumUserRepositoryImplemented().addUser(new User("test" + new Random().nextInt(10)));
-//      new GetWorkerConnectionRepositoryImplemented().addWorkerConnection(
-//          new GetworkWorkerConnection(InetAddress.getByName("localhost"), null, null));
-//      System.out.println(new GetWorkerConnectionRepositoryImplemented().getPresentWorkerConnection());
-//      // end
-//      Map<String, User> users = new StratumUserRepositoryImplemented().getPresentUsers();
-//      if (users != null) {
-//        ProxyManager.getInstance().setUsers(users);
-//      }
-//    } catch (SQLException e) {
+//      new StratumWorkerConnectionRepositoryImplemented()
+//          .addWorkerConnection(new StratumWorkerConnection(new Socket(), null));
+//    } catch (SQLException | IOException e) {
 //      e.printStackTrace();
 //    }
-    if (dbPools != null && !dbPools.isEmpty()) {
-      pools.addAll(dbPools);
-    }
+//    if (dbPools != null && !dbPools.isEmpty()) {
+//      pools.addAll(dbPools);
+//    }
     LOGGER.info("Using pools: {}.", pools);
 
     // Start the pools.

@@ -176,6 +176,27 @@ public class Pool {
 
   public Pool() {
     super();
+    this.isReady = false;
+    this.isEnabled = true;
+    this.isStable = false;
+    this.isFirstRun = true;
+    this.numberOfDisconnections = 0;
+    this.connectionExecutor = getConnectionExecutor();
+    this.connectionExecutor = getConnectionExecutor();
+
+    acceptedDifficulty = new AtomicDouble(0);
+    rejectedDifficulty = new AtomicDouble(0);
+
+    this.tails = buildTails();
+    this.submitCallbacks = Collections.synchronizedMap(
+        new HashMap<Object, ResponseReceivedCallback<MiningSubmitRequest, MiningSubmitResponse>>());
+    this.authorizeCallbacks = Collections.synchronizedMap(
+        new HashMap<Object, ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse>>());
+    this.lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
+    this.lastRejectedShares = new ConcurrentLinkedDeque<Share>();
+    this.authorizedWorkers = Collections.synchronizedSet(new HashSet<String>());
+    this.pendingAuthorizeRequests =
+        Collections.synchronizedMap(new HashMap<String, CountDownLatch>());
   }
 
   @Transient
@@ -317,11 +338,13 @@ public class Pool {
 
     if (connection != null) {
       cancelTimers();
-      authorizedWorkers.clear();
+      if (authorizedWorkers != null)
+        authorizedWorkers.clear();
 
       isReady = false;
       isStable = false;
-      manager.onPoolStateChange(this);
+      if (manager != null)
+        manager.onPoolStateChange(this);
       LOGGER.debug("Stopping pool {}...", getName());
       if (connection != null) {
         connection.close();

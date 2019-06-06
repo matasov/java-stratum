@@ -99,8 +99,9 @@ public class PoolRepositoryImplemented implements PoolRepository {
   @Override
   public Pool getPoolByConnectionIdStrategy(UUID connectionID) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
-    String sql = String.format("select * from %1$s where connection = '%2$s'", POOL_RELATION_TBL,
-        connectionID);
+    String sql = String.format(
+        "select * from %1$s where id = (select pool from %2$s where connection = '%3$s')",
+        POOL_TBL, POOL_RELATION_TBL, connectionID);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);

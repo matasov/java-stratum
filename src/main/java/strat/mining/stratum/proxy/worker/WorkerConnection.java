@@ -137,7 +137,7 @@ public interface WorkerConnection extends Connection {
    * 
    * @return
    */
-  public Date getActiveSince();
+  public Date getIsActiveSince();
 
   /**
    * Return the worker version.

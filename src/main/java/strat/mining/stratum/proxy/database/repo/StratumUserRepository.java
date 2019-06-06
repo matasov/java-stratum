@@ -13,8 +13,12 @@ public interface StratumUserRepository {
   void removeUser(User user) throws SQLException, IOException;
 
   void updateUser(User user) throws SQLException, IOException;
+  
+  void updateUserByName(User user) throws SQLException, IOException;
 
   User getUserByID(UUID userID) throws SQLException, IOException;
+  
+  User getUserByName(String userName) throws SQLException, IOException;
 
   Map<String, User> getPresentUsers() throws SQLException, IOException;
 }

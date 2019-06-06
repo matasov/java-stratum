@@ -9,11 +9,13 @@ import java.util.List;
 import java.util.UUID;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import strat.mining.stratum.proxy.database.PostgresqlManager;
-import strat.mining.stratum.proxy.pool.Pool;
 import strat.mining.stratum.proxy.worker.GetworkWorkerConnection;
+import strat.mining.stratum.proxy.worker.StratumWorkerConnection;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
 
-public class GetWorkerConnectionRepositoryImplemented implements GetWorkerConnectionRepository {
+public class StratumWorkerConnectionRepositoryImplemented
+    implements StratumWorkerConnectionRepository {
+
   private String CONNECTION_TBL = "connection";
 
   @Override
@@ -62,9 +64,8 @@ public class GetWorkerConnectionRepositoryImplemented implements GetWorkerConnec
       rs = workStatement.executeQuery(sql);
       while (rs.next()) {
         WorkerConnection row =
-            new ObjectMapper().readValue(rs.getString("connection"), GetworkWorkerConnection.class);
-        // Start the getwork timeout
-        ((GetworkWorkerConnection) row).resetGetworkTimeoutTask();
+            new ObjectMapper().readValue(rs.getString("connection"), StratumWorkerConnection.class);
+        
         return row;
       }
       rs.close();
@@ -88,7 +89,7 @@ public class GetWorkerConnectionRepositoryImplemented implements GetWorkerConnec
         List<WorkerConnection> resultSet = new ArrayList<>(rs.getFetchSize());
         while (rs.next()) {
           WorkerConnection row = new ObjectMapper().readValue(rs.getString("connection"),
-              GetworkWorkerConnection.class);
+              StratumWorkerConnection.class);
           // Start the getwork timeout
           ((GetworkWorkerConnection) row).resetGetworkTimeoutTask();
           resultSet.add(row);
@@ -105,7 +106,7 @@ public class GetWorkerConnectionRepositoryImplemented implements GetWorkerConnec
   }
 
   @Override
-  public WorkerConnection getWorkerConnectionByUserIdStrategy(UUID wconnID)
+  public WorkerConnection getWorkerConnectionByUserIdStrategy(UUID userID)
       throws SQLException, IOException {
     // TODO Auto-generated method stub
     return null;

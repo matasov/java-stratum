@@ -1041,14 +1041,14 @@ public class ProxyResources {
         .setRejectedHashesPerSeconds(Double.valueOf(connection.getRejectedHashrate()).longValue());
     result.setPoolName(connection.getPool().getName());
     result.setAuthorizedUsers(new ArrayList<>(connection.getAuthorizedWorkers().keySet()));
-    result.setIsActiveSince(connection.getActiveSince().getTime());
+    result.setIsActiveSince(connection.getIsActiveSince().getTime());
     result.setWorkerVersion(connection.getWorkerVersion());
 
     if (connection instanceof StratumWorkerConnection) {
       StratumWorkerConnection stratumConnection = (StratumWorkerConnection) connection;
       result.setConnectionType("tcp+stratum");
       result.setIsExtranonceNotificationSupported(
-          stratumConnection.isSetExtranonceNotificationSupported());
+          stratumConnection.getIsSetExtranonceNotificationSupported());
     } else {
       result.setConnectionType("getwork");
     }

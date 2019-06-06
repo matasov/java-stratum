@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.database.repo.PoolRepository;
 import strat.mining.stratum.proxy.database.repo.PoolRepositoryImplemented;
 import strat.mining.stratum.proxy.exception.NoPoolAvailableException;
@@ -13,6 +15,8 @@ import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 public class PriorityFailoverStrategyWithDBManager extends MonoCurrentPoolStrategyManager {
 
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(PriorityFailoverStrategyWithDBManager.class);
   public static final String NAME = "priorityDB";
 
   public static final String DESCRIPTION =
@@ -146,16 +150,24 @@ public class PriorityFailoverStrategyWithDBManager extends MonoCurrentPoolStrate
 
   @Override
   public Pool getPoolForConnection(WorkerConnection connection) throws NoPoolAvailableException {
-    System.out.println("try search pool for connection: " + connection.getId());
+    LOGGER.warn("try search pool for connection: " + connection.getId());
     Pool presentedPool = null;
     try {
-      poolRepo.getPoolByConnectionIdStrategy(connection.getId());
+      presentedPool = poolRepo.getPoolByConnectionIdStrategy(connection.getId());
+      List<Pool> pools = getProxyManager().getPools();
+      if (presentedPool != null)
+        for (Pool current : pools) {
+          if (current.getId().equals(presentedPool.getId())) {
+            presentedPool = current;
+            break;
+          }
+        }
     } catch (Exception ex) {
       ex.printStackTrace();
     }
     if (presentedPool == null) {
       computeCurrentPool();
-    }else {
+    } else {
       setCurrentPool(presentedPool);
     }
     return getCurrentPool();

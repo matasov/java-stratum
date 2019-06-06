@@ -15,6 +15,7 @@
  */
 package strat.mining.stratum.proxy.worker;
 
+import java.beans.Transient;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,16 +61,18 @@ import strat.mining.stratum.proxy.utils.mining.SHA256HashingUtils;
 import strat.mining.stratum.proxy.utils.mining.ScryptHashingUtils;
 import strat.mining.stratum.proxy.utils.mining.WorkerConnectionHashrateDelegator;
 import com.google.common.collect.Lists;
+import lombok.Getter;
+import lombok.Setter;
 
 public class StratumWorkerConnection extends StratumConnection implements WorkerConnection {
 
-  private UUID id;
+
 
   private static final Logger LOGGER = LoggerFactory.getLogger(WorkerConnection.class);
 
-  private Pool pool;
+  private transient Pool pool;
 
-  private ProxyManager manager;
+  private transient ProxyManager manager;
 
   private Task subscribeTimeoutTask;
   private Integer subscribeReceiveTimeout = Constants.DEFAULT_SUBSCRIBE_RECEIVE_TIMEOUT;
@@ -94,6 +97,10 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
   private String workerVersion;
 
+  public StratumWorkerConnection() {
+    super(null);
+  }
+
   public StratumWorkerConnection(Socket socket, ProxyManager manager) {
     super(socket);
     this.id = UUID.randomUUID();
@@ -101,7 +108,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     this.authorizedWorkers = Collections.synchronizedMap(new HashMap<String, String>());
     this.workerHashrateDelegator = new WorkerConnectionHashrateDelegator();
   }
-  
+
   @Override
   public UUID getId() {
     return id;
@@ -517,17 +524,18 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     workerHashrateDelegator.updateShareLists(share, isAccepted);
   }
 
+  @Transient
   @Override
   public void setSamplingHashesPeriod(Integer samplingHashesPeriod) {
     workerHashrateDelegator.setSamplingHashesPeriod(samplingHashesPeriod);
   }
 
   @Override
-  public Date getActiveSince() {
+  public Date getIsActiveSince() {
     return isActiveSince;
   }
 
-  public boolean isSetExtranonceNotificationSupported() {
+  public boolean getIsSetExtranonceNotificationSupported() {
     return isSetExtranonceNotificationSupported;
   }
 

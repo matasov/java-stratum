@@ -16,8 +16,10 @@
 package strat.mining.stratum.proxy.worker;
 
 import java.beans.Transient;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,6 +40,7 @@ import strat.mining.stratum.proxy.callback.ConnectionClosedCallback;
 import strat.mining.stratum.proxy.callback.LongPollingCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
+import strat.mining.stratum.proxy.database.repo.GetWorkerConnectionRepositoryImplemented;
 import strat.mining.stratum.proxy.exception.ChangeExtranonceNotSupportedException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
 import strat.mining.stratum.proxy.json.ClientShowMessageNotification;
@@ -107,7 +110,16 @@ public class GetworkWorkerConnection implements WorkerConnection {
   private ConnectionClosedCallback connectionClosedCallback;
 
   public GetworkWorkerConnection() {
+    this.longPollingCallbacks = Collections.synchronizedSet(new HashSet<LongPollingCallback>());
+    this.authorizedWorkers = Collections.synchronizedMap(new HashMap<String, String>());
+    this.extranonce2Counter = new AtomicBigInteger(ZERO_BIG_INTEGER_BYTES);
+    this.extranonce2AndJobIdByMerkleRoot =
+        Collections.synchronizedMap(new HashMap<String, Pair<String, String>>());
+    this.submitResponseLatches = Collections.synchronizedMap(new HashMap<Object, CountDownLatch>());
+    this.submitResponses = Collections.synchronizedMap(new HashMap<Object, MiningSubmitResponse>());
 
+    this.workerHashrateDelegator = new WorkerConnectionHashrateDelegator();
+    this.activeSince = new Date();
   }
 
   public GetworkWorkerConnection(InetAddress remoteAddress, ProxyManager manager,
@@ -127,9 +139,14 @@ public class GetworkWorkerConnection implements WorkerConnection {
     this.activeSince = new Date();
 
     this.connectionClosedCallback = connectionClosedCallback;
-
+    System.out.println("new worker connection: " + id);
     // Start the getwork timeout
     resetGetworkTimeoutTask();
+    try {
+      new GetWorkerConnectionRepositoryImplemented().addWorkerConnection(this);
+    } catch (SQLException | IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
@@ -471,7 +488,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
   /**
    * Reset the timeout of the getwork request.
    */
-  private void resetGetworkTimeoutTask() {
+  public void resetGetworkTimeoutTask() {
     if (getworkTimeoutTask != null) {
       getworkTimeoutTask.cancel();
       getworkTimeoutTask = null;
@@ -496,7 +513,7 @@ public class GetworkWorkerConnection implements WorkerConnection {
   }
 
   @Override
-  public Date getActiveSince() {
+  public Date getIsActiveSince() {
     return activeSince;
   }
 
