@@ -34,10 +34,12 @@ public class PoolSwitchingStrategyFactory {
   public PoolSwitchingStrategyManager getPoolSwitchingStrategyManagerByName(String name)
       throws UnsupportedPoolSwitchingStrategyException {
     LOGGER.warn("connect to strategy.");
-    PoolSwitchingStrategyManager result = getPriorityFailoverStrategyWithDBManager();
-    if (result != null)
-      return result;
-    if (PriorityFailoverStrategyWithDBManager.NAME.equalsIgnoreCase(name)) {
+    PoolSwitchingStrategyManager result = null;// getPriorityFailoverStrategyWithDBManager();
+    // if (result != null)
+    // return result;
+    if (PriorityDBStrategyManager.NAME.equalsIgnoreCase(name)) {
+      result = getPriorityDBStrategyManager();
+    } else if (PriorityFailoverStrategyWithDBManager.NAME.equalsIgnoreCase(name)) {
       result = getPriorityFailoverStrategyWithDBManager();
     } else if (PriorityFailoverStrategyManager.NAME.equalsIgnoreCase(name)) {
       result = getPriorityFailoverStrategyManager();
@@ -49,6 +51,10 @@ public class PoolSwitchingStrategyFactory {
               + ". Available strategy are: priorityFailover, weightedRoundRobin");
     }
     return result;
+  }
+
+  private PriorityDBStrategyManager getPriorityDBStrategyManager() {
+    return new PriorityDBStrategyManager(proxyManager);
   }
 
   private PriorityFailoverStrategyManager getPriorityFailoverStrategyManager() {

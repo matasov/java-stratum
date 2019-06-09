@@ -76,6 +76,30 @@ public class GetWorkerConnectionRepositoryImplemented implements GetWorkerConnec
     }
     return null;
   }
+  
+  @Override
+  public WorkerConnection getWorkerConnectionByName(String wconnName) throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    String sql = String.format("select * from %1$s where connection ->> 'name' = '%2$s'", CONNECTION_TBL, wconnName);
+    ResultSet rs = null;
+    try {
+      rs = workStatement.executeQuery(sql);
+      while (rs.next()) {
+        WorkerConnection row =
+            new ObjectMapper().readValue(rs.getString("connection"), GetworkWorkerConnection.class);
+        // Start the getwork timeout
+        ((GetworkWorkerConnection) row).resetGetworkTimeoutTask();
+        return row;
+      }
+      rs.close();
+    } finally {
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
+    }
+    return null;
+  }
 
   @Override
   public List<WorkerConnection> getPresentWorkerConnection() throws SQLException, IOException {
@@ -105,10 +129,16 @@ public class GetWorkerConnectionRepositoryImplemented implements GetWorkerConnec
   }
 
   @Override
-  public WorkerConnection getWorkerConnectionByUserIdStrategy(UUID wconnID)
+  public void updateWorkerConnectionByName(WorkerConnection wconn)
       throws SQLException, IOException {
-    // TODO Auto-generated method stub
-    return null;
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    String sql = String.format("update %1$s set pool = '%3$s' where connection ->> 'name' = '%2$s'", CONNECTION_TBL,
+        wconn.getConnectionName(), new ObjectMapper().writeValueAsString(wconn));
+    try {
+      workStatement.execute(sql);
+    } finally {
+      workStatement.close();
+    }
   }
 
 }

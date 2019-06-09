@@ -12,8 +12,12 @@ public interface PoolRepository {
   void removePool(Pool pool) throws SQLException, IOException;
 
   void updatePool(Pool pool) throws SQLException, IOException;
+  
+  void updatePoolByHost(Pool pool) throws SQLException, IOException;
 
   Pool getPoolByID(UUID poolID) throws SQLException, IOException;
+  
+  Pool getPoolByHost(String host) throws SQLException, IOException;
 
   List<Pool> getPresentPools() throws SQLException, IOException;
 

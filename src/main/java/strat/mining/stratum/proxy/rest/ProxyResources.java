@@ -134,12 +134,16 @@ public class ProxyResources {
     List<UserDetailsDTO> result = new ArrayList<>();
     if (users != null) {
       for (User user : users) {
-        result.add(convertUserToDTO(user));
+        try {
+          result.add(convertUserToDTO(user));
+        } catch (Exception ex) {
+          ex.printStackTrace();
+        }
       }
     }
 
     Response response = Response.status(Response.Status.OK).entity(result).build();
-
+    System.out.println("found users: " + result);
     return response;
   }
 
@@ -405,26 +409,33 @@ public class ProxyResources {
       responseContainer = "List")
   @PubliclyAvailable
   public Response getPoolsList() {
+    try {
+      List<Pool> pools = stratumProxyManager.getPools();
 
-    List<Pool> pools = stratumProxyManager.getPools();
+      List<PoolDetailsDTO> result = new ArrayList<>();
+      if (pools != null) {
+        for (Pool pool : pools) {
+          PoolDetailsDTO poolDTO = convertPoolToDTO(pool);
+          if (poolDTO != null)
+            result.add(poolDTO);
+        }
 
-    List<PoolDetailsDTO> result = new ArrayList<>();
-    if (pools != null) {
-      for (Pool pool : pools) {
-        PoolDetailsDTO poolDTO = convertPoolToDTO(pool);
-        result.add(poolDTO);
+        Collections.sort(result, new Comparator<PoolDetailsDTO>() {
+          public int compare(PoolDetailsDTO o1, PoolDetailsDTO o2) {
+            System.out.println("[" + o1.getName() + "]: " + o1.getPriority() + "[" + o2.getName()
+                + "]: " + o2.getPriority());
+            return o1.getPriority().compareTo(o2.getPriority());
+          }
+        });
       }
 
-      Collections.sort(result, new Comparator<PoolDetailsDTO>() {
-        public int compare(PoolDetailsDTO o1, PoolDetailsDTO o2) {
-          return o1.getPriority().compareTo(o2.getPriority());
-        }
-      });
+      Response response = Response.status(Response.Status.OK).entity(result).build();
+
+      return response;
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      return null;
     }
-
-    Response response = Response.status(Response.Status.OK).entity(result).build();
-
-    return response;
   }
 
   /**

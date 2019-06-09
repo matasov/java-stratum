@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 import javax.ws.rs.core.UriBuilder;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
@@ -124,11 +125,9 @@ public class Launcher {
   public static void main(String[] args) {
 
     try {
-
       ConfigurationManager configurationManager = ConfigurationManager.getInstance();
       configurationManager.loadConfiguration(args);
       LOGGER = LoggerFactory.getLogger(Launcher.class);
-
       // Initialize the shutdown hook
       initShutdownHook();
 
@@ -389,10 +388,16 @@ public class Launcher {
     try {
       dbPools = new PoolRepositoryImplemented().getPresentPools();
       System.out.println("found pools from db: " + dbPools);
+      Map<String, User> users = new StratumUserRepositoryImplemented().getPresentUsers();
+      System.out.println("found users from db: " + users);
+      if (users != null)
+        ProxyManager.getInstance().setUsers(users);
+//      Pool currentPool = new PoolRepositoryImplemented()
+//          .getPoolByConnectionIdStrategy(UUID.fromString("056fa6a8-1f3b-4853-9325-a8274300e523"));
+//      LOGGER.warn("currentPool: " + currentPool);
     } catch (Exception e) {
       e.printStackTrace();
     }
-
 
     // try {
     // // test
@@ -409,15 +414,15 @@ public class Launcher {
     // } catch (SQLException e) {
     // e.printStackTrace();
     // }
-//    try {
-//      new StratumWorkerConnectionRepositoryImplemented()
-//          .addWorkerConnection(new StratumWorkerConnection(new Socket(), null));
-//    } catch (SQLException | IOException e) {
-//      e.printStackTrace();
-//    }
-//    if (dbPools != null && !dbPools.isEmpty()) {
-//      pools.addAll(dbPools);
-//    }
+    // try {
+    // new StratumWorkerConnectionRepositoryImplemented()
+    // .addWorkerConnection(new StratumWorkerConnection(new Socket(), null));
+    // } catch (SQLException | IOException e) {
+    // e.printStackTrace();
+    // }
+    if (dbPools != null && !dbPools.isEmpty()) {
+      pools.addAll(dbPools);
+    }
     LOGGER.info("Using pools: {}.", pools);
 
     // Start the pools.

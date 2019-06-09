@@ -70,6 +70,10 @@ public abstract class StratumConnection implements Connection {
   @Setter
   @Getter
   protected String name = "undefined";
+  
+  @Setter
+  @Getter
+  protected boolean isConnected = true;
 
   private Map<Object, JsonRpcRequest> sentRequestIds;
 
@@ -584,6 +588,7 @@ public abstract class StratumConnection implements Connection {
    * 
    * @return
    */
+  @Transient
   public InetAddress getRemoteAddress() {
     return socket.getInetAddress();
   }

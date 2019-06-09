@@ -48,6 +48,7 @@ import strat.mining.stratum.proxy.cli.CommandLineOptions;
 import strat.mining.stratum.proxy.configuration.model.Configuration;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.exception.BadParameterException;
+import strat.mining.stratum.proxy.manager.strategy.PriorityDBStrategyManager;
 import strat.mining.stratum.proxy.manager.strategy.PriorityFailoverStrategyManager;
 import strat.mining.stratum.proxy.manager.strategy.PriorityFailoverStrategyWithDBManager;
 import strat.mining.stratum.proxy.pool.Pool;
@@ -100,7 +101,8 @@ public class ConfigurationManager {
 	private boolean noMidsate = false;
 	private boolean validateGetworkShares = false;
 
-	private String poolSwitchingStrategy = PriorityFailoverStrategyWithDBManager.NAME;
+	private String poolSwitchingStrategy = PriorityDBStrategyManager.NAME;
+	//private String poolSwitchingStrategy = PriorityFailoverStrategyManager.NAME;
 
 	private Integer weightedRoundRobinRoundDuration = Constants.DEFAULT_WEIGHTED_ROUND_ROBIN_ROUND_DURATION;
 

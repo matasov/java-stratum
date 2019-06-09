@@ -65,6 +65,8 @@ public class GetworkWorkerConnection implements WorkerConnection {
   @Getter
   private UUID id;
 
+  @Setter
+  @Getter
   private boolean isConnected = true;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(GetworkWorkerConnection.class);
@@ -139,14 +141,9 @@ public class GetworkWorkerConnection implements WorkerConnection {
     this.activeSince = new Date();
 
     this.connectionClosedCallback = connectionClosedCallback;
-    System.out.println("new worker connection: " + id);
+
     // Start the getwork timeout
     resetGetworkTimeoutTask();
-    try {
-      new GetWorkerConnectionRepositoryImplemented().addWorkerConnection(this);
-    } catch (SQLException | IOException e) {
-      e.printStackTrace();
-    }
   }
 
   @Override

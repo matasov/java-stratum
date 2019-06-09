@@ -84,6 +84,8 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
   private String extranonce1Tail;
   private Integer extranonce2Size;
 
+  @Setter
+  @Getter
   private Map<String, String> authorizedWorkers;
 
   private boolean isSetExtranonceNotificationSupported = false;
@@ -112,6 +114,11 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
   @Override
   public UUID getId() {
     return id;
+  }
+  
+  @Override
+  public boolean getIsConnected() {
+    return isConnected;
   }
 
   @Override
@@ -509,11 +516,12 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     return result;
   }
 
+  @Transient
   @Override
   public double getAcceptedHashrate() {
     return workerHashrateDelegator.getAcceptedHashrate();
   }
-
+  @Transient
   @Override
   public double getRejectedHashrate() {
     return workerHashrateDelegator.getRejectedHashrate();

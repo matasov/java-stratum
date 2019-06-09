@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import strat.mining.stratum.proxy.database.PostgresqlManager;
+import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.worker.GetworkWorkerConnection;
 import strat.mining.stratum.proxy.worker.StratumWorkerConnection;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
@@ -54,6 +55,19 @@ public class StratumWorkerConnectionRepositoryImplemented
       workStatement.close();
     }
   }
+  
+  @Override
+  public void updateWorkerConnectionByName(WorkerConnection wconn) throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    System.out.println("try update connection: " + new ObjectMapper().writeValueAsString(wconn));
+    String sql = String.format("update %1$s set id = '%3$s', connection = '%4$s' where Lower(connection ->> 'name') = Lower('%2$s')",
+        CONNECTION_TBL, wconn.getConnectionName(), wconn.getId(), new ObjectMapper().writeValueAsString(wconn));
+    try {
+      workStatement.execute(sql);
+    } finally {
+      workStatement.close();
+    }
+  }
 
   @Override
   public WorkerConnection getWorkerConnectionByID(UUID wconnID) throws SQLException, IOException {
@@ -66,6 +80,29 @@ public class StratumWorkerConnectionRepositoryImplemented
         WorkerConnection row =
             new ObjectMapper().readValue(rs.getString("connection"), StratumWorkerConnection.class);
         
+        return row;
+      }
+      rs.close();
+    } finally {
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
+    }
+    return null;
+  }
+  
+  @Override
+  public WorkerConnection getWorkerConnectionByName(String wconnName) throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    String sql = String.format("select * from %1$s where Lower(connection ->> 'name') = Lower('%2$s')", CONNECTION_TBL, wconnName);
+    ResultSet rs = null;
+    try {
+      rs = workStatement.executeQuery(sql);
+      while (rs.next()) {
+        WorkerConnection row =
+            new ObjectMapper().readValue(rs.getString("connection"), StratumWorkerConnection.class);
+        // Start the getwork timeout
         return row;
       }
       rs.close();

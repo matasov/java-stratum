@@ -330,7 +330,7 @@ public class GetworkRequestHandler extends HttpHandler {
     GetworkWorkerConnection workerConnection = workerConnections.get(address);
     // If the worker connection is null, try to create it.
     if (workerConnection == null) {
-      LOGGER.debug("No existing getwork connections for address {}. Create it.",
+      LOGGER.info("No existing getwork connections for address {}. Create it.",
           request.getRemoteAddr());
       workerConnection =
           new GetworkWorkerConnection(address, manager, new ConnectionClosedCallback() {
@@ -338,31 +338,55 @@ public class GetworkRequestHandler extends HttpHandler {
               // When the connection is closed, remove it from the
               // connection list.
 
-              try {
-                workerConnectionRepo.removeWorkerConnection(workerConnections.get(address));
-              } catch (SQLException | IOException e) {
-                e.printStackTrace();
-              }
+              // try {
+              // workerConnectionRepo.removeWorkerConnection(workerConnections.get(address));
+              // } catch (SQLException | IOException e) {
+              // e.printStackTrace();
+              // }
               workerConnections.remove(address);
-              LOGGER.debug("Getwork connection {} removed from Getwork handler.",
+              LOGGER.info("Getwork connection {} removed from Getwork handler.",
                   connection.getConnectionName());
             }
           });
-      System.out.println(this.getClass() + "::getWorkerConnection create new connection: "
+      LOGGER.info(this.getClass() + "::getWorkerConnection create new connection: "
           + workerConnection.getId());
       MiningSubscribeRequest subscribeRequest = new MiningSubscribeRequest();
+      try {
+        WorkerConnection presented =
+            workerConnectionRepo.getWorkerConnectionByName(workerConnection.getConnectionName());
+        if (presented != null) {
+          workerConnectionRepo.updateWorkerConnectionByName(workerConnection);
+          workerConnection.setId(presented.getId());
+        } else
+          workerConnectionRepo.addWorkerConnection(workerConnection);
+      } catch (SQLException | IOException e) {
+        e.printStackTrace();
+      }
       Pool pool = manager.onSubscribeRequest(workerConnection, subscribeRequest);
-      System.out.println(this.getClass() + "::getWorkerConnection try add to pool: "
-          + pool.getName() + "[" + pool.getId() + "]");
+      LOGGER.info("try add to pool: " + pool.getName() + "[" + pool.getId() + "]");
       workerConnection.rebindToPool(pool);
       workerConnections.put(address, workerConnection);
-//      try {
-//        workerConnectionRepo.addWorkerConnection(workerConnection);
-//      } catch (SQLException | IOException e) {
-//        e.printStackTrace();
-//      }
-      System.out.println(this.getClass() + "::getWorkerConnection success operation: "
-          + pool.getName() + "[" + pool.getId() + "]");
+
+      LOGGER.info(this.getClass() + "::getWorkerConnection success operation: " + pool.getName()
+          + "[" + pool.getId() + "]");
+    } else {
+      try {
+        WorkerConnection presented =
+            workerConnectionRepo.getWorkerConnectionByName(workerConnection.getConnectionName());
+        LOGGER.info("Present getwork connections for address {}.", request.getRemoteAddr());
+        if (presented != null) {
+          workerConnectionRepo.updateWorkerConnectionByName(workerConnection);
+          workerConnection.setId(presented.getId());
+          Pool pool = manager.getPoolForPresentedConnection(workerConnection);
+          LOGGER.info("try add to pool: " + pool.getName() + "[" + pool.getId() + "]");
+          workerConnection.rebindToPool(pool);
+          workerConnections.put(address, workerConnection);
+        } else
+          workerConnectionRepo.addWorkerConnection(workerConnection);
+      } catch (SQLException | IOException e) {
+        LOGGER.info(e.getMessage());
+        e.printStackTrace();
+      }
     }
     try {
       checkAuthorization(workerConnection, request);

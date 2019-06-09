@@ -102,7 +102,7 @@ public class StratumUserRepositoryImplemented implements StratumUserRepository {
   public User getUserByName(String userName) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql =
-        String.format("SELECT * FROM FROM %1$s where json ->> 'name' = '%2$s'", USER_TBL, userName);
+        String.format("SELECT * FROM %1$s where Lower(json ->> 'name') = Lower('%2$s')", USER_TBL, userName);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);
@@ -124,8 +124,8 @@ public class StratumUserRepositoryImplemented implements StratumUserRepository {
   public void updateUserByName(User user) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     System.out.println("try update user: " + new ObjectMapper().writeValueAsString(user));
-    String sql = String.format("update %1$s set json = '%3$s' where json ->> 'name' = '%2$s'",
-        USER_TBL, user.getId(), new ObjectMapper().writeValueAsString(user));
+    String sql = String.format("update %1$s set id = '%3$s', json = '%4$s' where Lower(json ->> 'name') = Lower('%2$s')",
+        USER_TBL, user.getName(), user.getId(), new ObjectMapper().writeValueAsString(user));
     try {
       workStatement.execute(sql);
     } finally {

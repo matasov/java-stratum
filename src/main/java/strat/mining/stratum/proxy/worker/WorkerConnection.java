@@ -32,7 +32,9 @@ import strat.mining.stratum.proxy.pool.Pool;
 
 public interface WorkerConnection extends Connection {
 
-  public UUID getId();
+  UUID getId();
+  
+  void setId(UUID id);
 
   /**
    * Return the pool on which this connection is bound.
@@ -40,14 +42,14 @@ public interface WorkerConnection extends Connection {
    * @return
    */
   @Transient
-  public Pool getPool();
+  Pool getPool();
 
   /**
    * Return true if the connection is connected
    * 
    * @return
    */
-  public boolean getIsConnected();
+  boolean getIsConnected();
 
   /**
    * Reset the connection with the parameters of the new pool. May close the connection if
@@ -57,14 +59,14 @@ public interface WorkerConnection extends Connection {
    * @throws TooManyWorkersException
    * @throws ChangeExtranonceNotSupportedException
    */
-  public void rebindToPool(Pool newPool)
+  void rebindToPool(Pool newPool)
       throws TooManyWorkersException, ChangeExtranonceNotSupportedException;
 
   /**
    * Called when the pool change its extranonce. Send the extranonce change to the worker. Throw an
    * exception if the extranonce change is not supported on the fly.
    */
-  public void onPoolExtranonceChange() throws ChangeExtranonceNotSupportedException;
+  void onPoolExtranonceChange() throws ChangeExtranonceNotSupportedException;
 
   /**
    * Called when the pool difficulty has changed

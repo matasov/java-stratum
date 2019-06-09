@@ -61,6 +61,8 @@ public class AuthenticationFilter extends BaseFilter {
     Set<Method> resources = reflections.getMethodsAnnotatedWith(PubliclyAvailable.class);
     publiclyAvailablePathes = new HashSet<String>();
     publiclyAvailablePathes
+    .add(UriBuilder.fromPath("/").path("").build().toASCIIString());
+    publiclyAvailablePathes
     .add(UriBuilder.fromPath("/").path("favicon.ico").build().toASCIIString());
     publiclyAvailablePathes
         .add(UriBuilder.fromPath("/").path("index.html").build().toASCIIString());

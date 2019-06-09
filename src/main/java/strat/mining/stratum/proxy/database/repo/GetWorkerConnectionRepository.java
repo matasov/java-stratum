@@ -14,9 +14,11 @@ public interface GetWorkerConnectionRepository {
   void updateWorkerConnection(WorkerConnection wconn) throws SQLException, IOException;
 
   WorkerConnection getWorkerConnectionByID(UUID wconnID) throws SQLException, IOException;
+  
+  WorkerConnection getWorkerConnectionByName(String wconnName) throws SQLException, IOException;
 
   List<WorkerConnection> getPresentWorkerConnection() throws SQLException, IOException;
 
-  WorkerConnection getWorkerConnectionByUserIdStrategy(UUID userID)
+  void updateWorkerConnectionByName(WorkerConnection wconn)
       throws SQLException, IOException;
 }

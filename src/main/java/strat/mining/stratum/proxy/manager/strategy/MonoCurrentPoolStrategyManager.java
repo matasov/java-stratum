@@ -39,7 +39,7 @@ public abstract class MonoCurrentPoolStrategyManager implements PoolSwitchingStr
   private static final Logger LOGGER =
       LoggerFactory.getLogger(MonoCurrentPoolStrategyManager.class);
 
-  private ProxyManager proxyManager;
+  protected ProxyManager proxyManager;
 
   private Pool currentPool;
 
@@ -68,6 +68,7 @@ public abstract class MonoCurrentPoolStrategyManager implements PoolSwitchingStr
           for (WorkerConnection connection : workerConnections) {
             // If the connection is not bound to the poolToBind,
             // switch the pool.
+            
             if (!connection.getPool().equals(currentPool)) {
               try {
                 proxyManager.switchPoolForConnection(connection, currentPool);
@@ -141,21 +142,21 @@ public abstract class MonoCurrentPoolStrategyManager implements PoolSwitchingStr
 
   @Override
   public Pool getPoolForConnection(WorkerConnection connection) throws NoPoolAvailableException {
-    try {
-      currentPool =
-          new PoolRepositoryImplemented().getPoolByConnectionIdStrategy(connection.getId());
-      LOGGER.debug("Found pool: {}", currentPool.getName());
-      List<Pool> pools = getProxyManager().getPools();
-      if (currentPool != null)
-        for (Pool current : pools) {
-          if (current.getId().equals(currentPool.getId())) {
-            currentPool = current;
-            break;
-          }
-        }
-    } catch (Exception ex) {
-      ex.printStackTrace();
-    }
+//    try {
+//      currentPool =
+//          new PoolRepositoryImplemented().getPoolByConnectionIdStrategy(connection.getId());
+//      LOGGER.debug("Found pool: {}", currentPool.getName());
+//      List<Pool> pools = getProxyManager().getPools();
+//      if (currentPool != null)
+//        for (Pool current : pools) {
+//          if (current.getId().equals(currentPool.getId())) {
+//            currentPool = current;
+//            break;
+//          }
+//        }
+//    } catch (Exception ex) {
+//      ex.printStackTrace();
+//    }
     if (currentPool == null) {
       computeCurrentPool();
     }
@@ -176,7 +177,7 @@ public abstract class MonoCurrentPoolStrategyManager implements PoolSwitchingStr
    */
   protected void setCurrentPool(Pool pool) {
 
-    LOGGER.debug("Current pool: {}", pool.getName());
+    LOGGER.debug("Current pool: {}", pool == null ? "null" : pool.getName());
     if (pool != currentPool && currentPool != null) {
       currentPool.setIsActive(false);
     }

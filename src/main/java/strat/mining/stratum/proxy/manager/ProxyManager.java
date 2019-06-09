@@ -16,6 +16,8 @@
 package strat.mining.stratum.proxy.manager;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -93,8 +95,8 @@ public class ProxyManager {
   // reposirories
   StratumUserRepository stratumUserRepo = new StratumUserRepositoryImplemented();
   PoolRepository poolRepo = new PoolRepositoryImplemented();
-  GetWorkerConnectionRepository getWorkerConnectionRepo =
-      new GetWorkerConnectionRepositoryImplemented();
+  // GetWorkerConnectionRepository getWorkerConnectionRepo =
+  // new GetWorkerConnectionRepositoryImplemented();
 
   StratumWorkerConnectionRepository getStratumConnectionRepo =
       new StratumWorkerConnectionRepositoryImplemented();
@@ -201,6 +203,20 @@ public class ProxyManager {
                 incomingConnectionSocket.getRemoteSocketAddress());
             StratumWorkerConnection workerConnection =
                 new StratumWorkerConnection(incomingConnectionSocket, ProxyManager.this);
+            try {
+              WorkerConnection presentConnection = getStratumConnectionRepo
+                  .getWorkerConnectionByName(workerConnection.getConnectionName());
+              if (presentConnection != null) {
+                workerConnection.setId(presentConnection.getId());
+                getStratumConnectionRepo.updateWorkerConnectionByName(workerConnection);
+              } else
+                getStratumConnectionRepo.addWorkerConnection(workerConnection);
+            } catch (SQLException | IOException e) {
+              StringWriter errors = new StringWriter();
+              e.printStackTrace(new PrintWriter(errors));
+              LOGGER.error(errors.toString());
+              e.printStackTrace();
+            }
             workerConnection.setSamplingHashesPeriod(
                 ConfigurationManager.getInstance().getConnectionHashrateSamplingPeriod());
             workerConnection.startReading();
@@ -258,20 +274,27 @@ public class ProxyManager {
    */
   public Pool onSubscribeRequest(WorkerConnection connection, MiningSubscribeRequest request)
       throws NoPoolAvailableException {
+
     Pool pool = poolSwitchingStrategyManager.getPoolForConnection(connection);
 
     Set<WorkerConnection> workerConnections = getPoolWorkerConnections(pool);
     workerConnections.add(connection);
     this.workerConnections.add(connection);
-    try {
-      getStratumConnectionRepo.addWorkerConnection(connection);
-    } catch (SQLException | IOException e) {
-      e.printStackTrace();
-    }
     LOGGER.info("New WorkerConnection {} subscribed. {} connections active on pool {}.",
         connection.getConnectionName(), workerConnections.size(), pool.getName());
 
     return pool;
+  }
+
+  public Pool getPoolForPresentedConnection(WorkerConnection connection) {
+    try {
+      return poolSwitchingStrategyManager.getPoolForConnection(connection);
+    } catch (NoPoolAvailableException ex) {
+      StringWriter errors = new StringWriter();
+      ex.printStackTrace(new PrintWriter(errors));
+      LOGGER.error(errors.toString());
+    }
+    return null;
   }
 
   /**
@@ -299,7 +322,7 @@ public class ProxyManager {
    * @param request
    */
   private void linkConnectionToUser(WorkerConnection connection, MiningAuthorizeRequest request) {
-    User user = users.get(request.getUsername());
+    User user = users.get(request.getUsername().toLowerCase());
     if (user == null) {
       user = new User(request.getUsername());
 
@@ -380,7 +403,7 @@ public class ProxyManager {
       if (user != null) {
         user.updateShareLists(share, isAccepted);
         try {
-          stratumUserRepo.updateUser(user);
+          stratumUserRepo.updateUserByName(user);
         } catch (SQLException | IOException e) {
           e.printStackTrace();
         }
@@ -501,11 +524,11 @@ public class ProxyManager {
       connections.remove(workerConnection);
     }
     ProxyManager.this.workerConnections.remove(workerConnection);
-    try {
-      getStratumConnectionRepo.removeWorkerConnection(workerConnection);
-    } catch (SQLException | IOException e) {
-      e.printStackTrace();
-    }
+    // try {
+    // getStratumConnectionRepo.removeWorkerConnection(workerConnection);
+    // } catch (SQLException | IOException e) {
+    // e.printStackTrace();
+    // }
     LOGGER.info("Worker connection {} closed. {} connections active on pool {}. Cause: {}",
         workerConnection.getConnectionName(), connections == null ? 0 : connections.size(),
         workerConnection.getPool() != null ? workerConnection.getPool().getName() : "None",
@@ -702,6 +725,7 @@ public class ProxyManager {
     synchronized (users) {
       users.putAll(fromDB);
     }
+
   }
 
   /**
@@ -769,7 +793,11 @@ public class ProxyManager {
 
     // add pool to db
     try {
-      poolRepo.addPool(poolToAdd);
+      if (poolRepo.getPoolByHost(poolToAdd.getHost()) != null) {
+        return poolToAdd;
+        //poolRepo.updatePoolByHost(poolToAdd);
+      } else
+        poolRepo.addPool(poolToAdd);
     } catch (SQLException | IOException exception) {
       System.out.println("something wrong. " + exception.getMessage());
       // exception.printStackTrace();
@@ -887,7 +915,7 @@ public class ProxyManager {
       if (user != null) {
         List<WorkerConnection> connections = user.getWorkerConnections();
         try {
-          stratumUserRepo.updateUser(user);
+          stratumUserRepo.updateUserByName(user);
         } catch (SQLException | IOException e) {
           e.printStackTrace();
         }
@@ -1079,6 +1107,7 @@ public class ProxyManager {
       }
       poolSwitchingStrategyManager =
           poolSwitchingStrategyFactory.getPoolSwitchingStrategyManagerByName(strategyName);
+      LOGGER.warn("poolSwitchingStrategyFactory: " + strategyName);
     }
   }
 

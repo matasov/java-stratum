@@ -12,10 +12,14 @@ public interface StratumWorkerConnectionRepository {
   void removeWorkerConnection(WorkerConnection wconn) throws SQLException, IOException;
 
   void updateWorkerConnection(WorkerConnection wconn) throws SQLException, IOException;
+  
+  void updateWorkerConnectionByName(WorkerConnection wconn) throws SQLException, IOException;
 
   WorkerConnection getWorkerConnectionByID(UUID wconnID) throws SQLException, IOException;
 
-  List<WorkerConnection> getPresentWorkerConnection() throws SQLException, IOException;
+  List<WorkerConnection> getPresentWorkerConnection() throws SQLException, IOException;  
+  
+  WorkerConnection getWorkerConnectionByName(String wconnName) throws SQLException, IOException;
 
   WorkerConnection getWorkerConnectionByUserIdStrategy(UUID userID)
       throws SQLException, IOException;

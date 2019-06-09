@@ -81,7 +81,6 @@ public class PriorityFailoverStrategyManager extends MonoCurrentPoolStrategyMana
 				previousPriority = pool.getPriority();
 			}
 		}
-
 		super.onPoolUpdated(poolUpdated);
 	}
 

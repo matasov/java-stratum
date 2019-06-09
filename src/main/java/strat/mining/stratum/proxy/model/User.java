@@ -61,7 +61,10 @@ public class User {
   private Integer samplingHashesPeriod = Constants.DEFAULT_USER_HASHRATE_SAMPLING_PERIOD * 1000;
 
   public User() {
-
+    creationTime = new Date();
+    lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
+    lastRejectedShares = new ConcurrentLinkedDeque<Share>();
+    seenOnConnections = Collections.synchronizedSet(new HashSet<WeakReference<WorkerConnection>>());
   }
 
   public User(String name) {

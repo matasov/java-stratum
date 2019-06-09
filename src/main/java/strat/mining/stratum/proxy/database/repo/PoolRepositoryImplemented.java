@@ -10,6 +10,8 @@ import java.util.UUID;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import strat.mining.stratum.proxy.database.PostgresqlManager;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.worker.StratumWorkerConnection;
+import strat.mining.stratum.proxy.worker.WorkerConnection;
 
 public class PoolRepositoryImplemented implements PoolRepository {
   private String POOL_TBL = "pool";
@@ -38,6 +40,7 @@ public class PoolRepositoryImplemented implements PoolRepository {
     }
   }
 
+  @Override
   public void updatePool(Pool pool) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql = String.format("update %1$s set pool = '%3$s' where id = '%2$s'", POOL_TBL,
@@ -50,6 +53,20 @@ public class PoolRepositoryImplemented implements PoolRepository {
     }
   }
 
+  @Override
+  public void updatePoolByHost(Pool pool) throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    System.out.println("try update pool: " + new ObjectMapper().writeValueAsString(pool));
+    String sql = String.format("update %1$s set id = '%3$s', poll = '%4$s' where Lower(pool ->> 'host') = Lower('%2$s')",
+        POOL_TBL, pool.getHost(), pool.getId(), new ObjectMapper().writeValueAsString(pool));
+    try {
+      workStatement.execute(sql);
+    } finally {
+      workStatement.close();
+    }
+  }
+
+  @Override
   public Pool getPoolByID(UUID poolID) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql = String.format("select * from %1$s where id = '%2$s'", POOL_TBL, poolID);
@@ -78,8 +95,7 @@ public class PoolRepositoryImplemented implements PoolRepository {
     try {
       rs = workStatement.executeQuery(sql);
       if (rs != null) {
-        System.out.println("found pools: " + rs.getFetchSize());
-        List<Pool> resultSet = new ArrayList<>(rs.getFetchSize());
+        List<Pool> resultSet = new ArrayList<>(5);
         while (rs.next()) {
           System.out.println("pool json: " + rs.getString("pool"));
           Pool row = new ObjectMapper().readValue(rs.getString("pool"), Pool.class);
@@ -97,11 +113,34 @@ public class PoolRepositoryImplemented implements PoolRepository {
   }
 
   @Override
+  public Pool getPoolByHost(String host) throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    String sql = String.format("select * from %1$s where Lower(pool ->> 'host') = Lower('%2$s')", POOL_TBL, host);
+    ResultSet rs = null;
+    try {
+      rs = workStatement.executeQuery(sql);
+      while (rs.next()) {
+        Pool row =
+            new ObjectMapper().readValue(rs.getString("pool"), Pool.class);
+        // Start the getwork timeout
+        return row;
+      }
+      rs.close();
+    } finally {
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
+    }
+    return null;
+  }
+
+  @Override
   public Pool getPoolByConnectionIdStrategy(UUID connectionID) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql = String.format(
-        "select * from %1$s where id = (select pool from %2$s where connection = '%3$s')",
-        POOL_TBL, POOL_RELATION_TBL, connectionID);
+        "select * from %1$s where id = (select pool from %2$s where connection = '%3$s')", POOL_TBL,
+        POOL_RELATION_TBL, connectionID);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);

@@ -219,7 +219,7 @@ public class Pool {
     this.isFirstRun = true;
     this.numberOfDisconnections = 0;
     this.connectionExecutor = getConnectionExecutor();
-
+    priority = 10000;
     acceptedDifficulty = new AtomicDouble(0);
     rejectedDifficulty = new AtomicDouble(0);
 
