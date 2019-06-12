@@ -47,7 +47,6 @@ import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.database.DatabaseManager;
 import strat.mining.stratum.proxy.database.model.HashrateModel;
-import strat.mining.stratum.proxy.database.model.SiteUser;
 import strat.mining.stratum.proxy.database.model.SiteUserImplemented;
 import strat.mining.stratum.proxy.database.repo.SiteUserRepositoryImplemented;
 import strat.mining.stratum.proxy.exception.BadParameterException;

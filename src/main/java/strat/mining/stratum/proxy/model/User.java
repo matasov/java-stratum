@@ -69,7 +69,7 @@ public class User {
 
   public User(String name) {
     id = UUID.randomUUID();
-    this.name = name;
+    this.name = name.toLowerCase();
     creationTime = new Date();
     lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
     lastRejectedShares = new ConcurrentLinkedDeque<Share>();
