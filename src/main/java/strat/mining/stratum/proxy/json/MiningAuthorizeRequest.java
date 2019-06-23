@@ -47,7 +47,7 @@ public class MiningAuthorizeRequest extends JsonRpcRequest {
 	}
 
 	public void setUsername(String username) {
-		this.username = username;
+		this.username = username.toLowerCase();
 	}
 
 	public String getPassword() {
@@ -73,7 +73,7 @@ public class MiningAuthorizeRequest extends JsonRpcRequest {
 	public void setParams(List<Object> params) {
 		super.setParams(params);
 		if (params != null) {
-			username = (String) params.get(0);
+			username = ((String) params.get(0)).toLowerCase();
 			password = (String) params.get(1);
 		}
 	}

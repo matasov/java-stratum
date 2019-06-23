@@ -285,7 +285,7 @@ public class DatabaseManager {
 			public boolean match(HashrateModel hashrateModel) {
 				boolean startFiltered = startTimestampMs != null && hashrateModel.getCaptureTime() < startTimestampMs;
 				boolean endFiltered = endTimestampMs != null && hashrateModel.getCaptureTime() > endTimestampMs;
-				return hashrateModel.getName().equals(username) && !startFiltered && !endFiltered;
+				return hashrateModel.getName().equalsIgnoreCase(username) && !startFiltered && !endFiltered;
 			}
 		});
 	}

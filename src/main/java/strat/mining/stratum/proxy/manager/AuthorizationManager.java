@@ -24,7 +24,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import strat.mining.stratum.proxy.database.PostgresqlManager;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.database.model.SiteUser;
 import strat.mining.stratum.proxy.database.repo.SiteUserRepositoryImplemented;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
@@ -41,6 +44,8 @@ import strat.mining.stratum.proxy.worker.WorkerConnection;
  * 
  */
 public class AuthorizationManager {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationManager.class);
 
   private Set<String> bannedUserNames;
   private Set<InetAddress> bannedAddresses;
@@ -61,6 +66,7 @@ public class AuthorizationManager {
   public void checkAuthorization(WorkerConnection connection, MiningAuthorizeRequest request)
       throws AuthorizationException {
     if (!isPresentUserInDB(request.getUsername())) {
+      LOGGER.error("The user " + request.getUsername().toLowerCase() + " not found.");
       throw new AuthorizationException("The user " + request.getUsername() + " not found.");
     } else if (bannedUserNames.contains(request.getUsername())) {
       throw new AuthorizationException("The user " + request.getUsername() + " is banned.");
@@ -74,7 +80,15 @@ public class AuthorizationManager {
     if (userName != null && !userName.equals("")) {
       SiteUserRepositoryImplemented repo = new SiteUserRepositoryImplemented();
       try {
-        SiteUser found = repo.getSiteUserByName(userName);
+        // userName = request.getUsername().toLowerCase();
+        userName.replaceAll("[\\\']", "");
+        String[] explode = userName.replaceAll("[\\\']", "").split("\\.");
+        // String index = "";
+        if (explode.length > 1) {
+          userName = Stream.of(explode).limit(explode.length - 1).collect(Collectors.joining("."));
+          // index = explode[explode.length - 1];
+        }
+        SiteUser found = repo.getSiteUserByName(userName.toLowerCase().replaceAll("[\\\']", ""));
         if (found != null && found.getName() != null) {
           return true;
         }

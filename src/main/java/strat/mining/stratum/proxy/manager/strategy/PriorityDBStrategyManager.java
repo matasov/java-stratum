@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.database.repo.PoolRepository;
@@ -184,7 +185,13 @@ public class PriorityDBStrategyManager extends MonoCurrentPoolStrategyManager {
           // switch the pool.
           Pool dbPool = null;
           try {
-            dbPool = poolRepo.getPoolByConnectionIdStrategy(connection.getId());
+            List<String> userNames = connection.getAuthorizedWorkers().entrySet().stream().limit(1)
+                .map(x -> x.getKey()).collect(Collectors.toList());
+            if (userNames == null || userNames.isEmpty()) {
+              throw new NoPoolAvailableException();
+            }
+            dbPool = poolRepo.getPoolByUserNameStrategy(userNames.get(0));
+            // dbPool = poolRepo.getPoolByConnectionIdStrategy(connection.getId());
             if (dbPool != null)
               for (Pool currentManagerPool : pools) {
                 if (currentManagerPool.getId().equals(dbPool.getId())
@@ -249,7 +256,13 @@ public class PriorityDBStrategyManager extends MonoCurrentPoolStrategyManager {
     LOGGER.warn("try search pool for connection: " + connection.getId());
     Pool presentedPool = null;
     try {
-      presentedPool = poolRepo.getPoolByConnectionIdStrategy(connection.getId());
+      // presentedPool = poolRepo.getPoolByConnectionIdStrategy(connection.getId());
+      List<String> userNames = connection.getAuthorizedWorkers().entrySet().stream().limit(1)
+          .map(x -> x.getKey()).collect(Collectors.toList());
+      if (userNames == null || userNames.isEmpty()) {
+        throw new NoPoolAvailableException();
+      }
+      presentedPool = poolRepo.getPoolByUserNameStrategy(userNames.get(0));
       List<Pool> pools = getProxyManager().getPools();
       if (presentedPool != null)
         for (Pool current : pools) {

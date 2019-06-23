@@ -277,7 +277,7 @@ public class ConfigurationManager {
 				String username = "";
 				String password = Constants.DEFAULT_PASSWORD;
 				Boolean isExtranonceSubscribe = Boolean.FALSE;
-				Boolean isAppendWorkerNames = Boolean.FALSE;
+				Boolean isAppendWorkerNames = Boolean.TRUE;
 				String workerNameSeparator = Constants.DEFAULT_WORKER_NAME_SEPARTOR;
 				Boolean useWorkerPassword = Boolean.FALSE;
 				Boolean isEnabled = Boolean.TRUE;
@@ -336,7 +336,7 @@ public class ConfigurationManager {
 				pool.setNoNotifyTimeout(poolNoNotifyTimeout);
 				pool.setRejectReconnect(isRejectReconnect);
 				pool.setSamplingHashratePeriod(poolHashrateSamplingPeriod);
-				pool.setAppendWorkerNames(isAppendWorkerNames);
+				pool.setUpdateAppendWorkerNames(isAppendWorkerNames);
 				pool.setWorkerSeparator(workerNameSeparator);
 				pool.setUseWorkerPassword(useWorkerPassword);
 				pool.setWeight(poolWeight);
@@ -481,7 +481,7 @@ public class ConfigurationManager {
 					String username = Constants.DEFAULT_USERNAME;
 					String password = Constants.DEFAULT_PASSWORD;
 					Boolean isExtranonceSubscribe = Boolean.FALSE;
-					Boolean isAppendWorkerNames = Boolean.FALSE;
+					Boolean isAppendWorkerNames = Boolean.TRUE;
 					String workerNameSeparator = Constants.DEFAULT_WORKER_NAME_SEPARTOR;
 					Boolean useWorkerPassword = Boolean.FALSE;
 					Integer poolWeight = Constants.DEFAULT_POOL_WEIGHT;
@@ -533,7 +533,7 @@ public class ConfigurationManager {
 					pool.setNoNotifyTimeout(poolNoNotifyTimeout);
 					pool.setRejectReconnect(isRejectReconnect);
 					pool.setSamplingHashratePeriod(poolHashrateSamplingPeriod);
-					pool.setAppendWorkerNames(isAppendWorkerNames);
+					pool.setUpdateAppendWorkerNames(isAppendWorkerNames);
 					pool.setWorkerSeparator(workerNameSeparator);
 					pool.setUseWorkerPassword(useWorkerPassword);
 					pool.setWeight(poolWeight);

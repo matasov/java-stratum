@@ -238,7 +238,6 @@ public abstract class StratumConnection implements Connection {
         if (isFirstLine) {
           isFirstLine = false;
         }
-
         // If there is an id, it may be a request or a response
         if (request.getId() != null) {
           // If there is a method name, it is a request.

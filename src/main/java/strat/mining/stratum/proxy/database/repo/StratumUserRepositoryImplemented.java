@@ -7,6 +7,8 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import strat.mining.stratum.proxy.database.PostgresqlManager;
 import strat.mining.stratum.proxy.model.User;
@@ -14,9 +16,12 @@ import strat.mining.stratum.proxy.model.User;
 public class StratumUserRepositoryImplemented implements StratumUserRepository {
 
   private String USER_TBL = "stratum_user";
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(StratumUserRepositoryImplemented.class);
 
   @Override
   public void addUser(User user) throws SQLException, IOException {
+    LOGGER.debug("try add user: " + user.getName());
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql = String.format("insert into %1$s values ('%2$s', '%3$s')", USER_TBL, user.getId(),
         new ObjectMapper().writeValueAsString(user));
@@ -101,8 +106,8 @@ public class StratumUserRepositoryImplemented implements StratumUserRepository {
   @Override
   public User getUserByName(String userName) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
-    String sql =
-        String.format("SELECT * FROM %1$s where Lower(json ->> 'name') = Lower('%2$s')", USER_TBL, userName);
+    String sql = String.format("SELECT * FROM %1$s where Lower(json ->> 'name') = Lower('%2$s')",
+        USER_TBL, userName);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);
@@ -123,8 +128,9 @@ public class StratumUserRepositoryImplemented implements StratumUserRepository {
   @Override
   public void updateUserByName(User user) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
-    System.out.println("try update user: " + new ObjectMapper().writeValueAsString(user));
-    String sql = String.format("update %1$s set id = '%3$s', json = '%4$s' where Lower(json ->> 'name') = Lower('%2$s')",
+    LOGGER.debug("try update user: " + user.getName());
+    String sql = String.format(
+        "update %1$s set id = '%3$s', json = '%4$s' where Lower(json ->> 'name') = Lower('%2$s')",
         USER_TBL, user.getName(), user.getId(), new ObjectMapper().writeValueAsString(user));
     try {
       workStatement.execute(sql);

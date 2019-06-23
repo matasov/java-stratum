@@ -43,8 +43,6 @@ import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.database.DatabaseManager;
-import strat.mining.stratum.proxy.database.repo.GetWorkerConnectionRepository;
-import strat.mining.stratum.proxy.database.repo.GetWorkerConnectionRepositoryImplemented;
 import strat.mining.stratum.proxy.database.repo.PoolRepository;
 import strat.mining.stratum.proxy.database.repo.PoolRepositoryImplemented;
 import strat.mining.stratum.proxy.database.repo.StratumUserRepository;
@@ -74,6 +72,8 @@ import strat.mining.stratum.proxy.manager.strategy.PoolSwitchingStrategyManager;
 import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.pool.PoolUsersManager;
+import strat.mining.stratum.proxy.pool.PoolUsersManagerImplemented;
 import strat.mining.stratum.proxy.rest.dto.AddPoolDTO;
 import strat.mining.stratum.proxy.rest.dto.AddressDTO;
 import strat.mining.stratum.proxy.rest.dto.ConnectionIdentifierDTO;
@@ -97,6 +97,7 @@ public class ProxyManager {
   PoolRepository poolRepo = new PoolRepositoryImplemented();
   // GetWorkerConnectionRepository getWorkerConnectionRepo =
   // new GetWorkerConnectionRepositoryImplemented();
+  PoolUsersManager poolUsersManager = new PoolUsersManagerImplemented();
 
   StratumWorkerConnectionRepository getStratumConnectionRepo =
       new StratumWorkerConnectionRepositoryImplemented();
@@ -230,7 +231,6 @@ public class ProxyManager {
             }
           }
         }
-
         LOGGER.info("Stop to listen incoming connection on {}.",
             serverSocket.getLocalSocketAddress());
       }
@@ -322,22 +322,44 @@ public class ProxyManager {
    * @param request
    */
   private void linkConnectionToUser(WorkerConnection connection, MiningAuthorizeRequest request) {
-    User user = users.get(request.getUsername().toLowerCase());
+
+    String userName = request.getUsername().toLowerCase().replaceAll("[\\\']", "");
+    // String[] explode = userName.split("\\.");
+    // String index = "";
+    // if (explode.length > 1) {
+    // userName = Stream.of(explode).limit(explode.length - 1).collect(Collectors.joining("."));
+    // index = explode[explode.length - 1];
+    // }
+    User user = users.get(userName);
     if (user == null) {
-      user = new User(request.getUsername());
+      user = new User(userName);
 
       user.setSamplingHashesPeriod(
           ConfigurationManager.getInstance().getUserHashrateSamplingPeriod());
       try {
-        if (stratumUserRepo.getUserByName(request.getUsername()) != null)
-          stratumUserRepo.updateUserByName(user);
-        else
-          stratumUserRepo.addUser(user);
-      } catch (SQLException | IOException e) {
-        e.printStackTrace();
+        User foundedUser = stratumUserRepo.getUserByName(request.getUsername().toLowerCase());
+        if (foundedUser != null) {
+          user.setId(foundedUser.getId());
+          User toSave = user;
+          toSave.setName(request.getUsername().toLowerCase());
+          stratumUserRepo.updateUserByName(toSave);
+        } else {
+          User toSave = user;
+          toSave.setName(request.getUsername().toLowerCase());
+          stratumUserRepo.addUser(toSave);
+        }
+      } catch (SQLException | IOException ex) {
+        StringWriter errors = new StringWriter();
+        ex.printStackTrace(new PrintWriter(errors));
+        LOGGER.error(errors.toString());
       }
-      users.put(request.getUsername(), user);
+      LOGGER.debug("add connection {} to user {}", connection.getRemoteAddress().toString(),
+          userName);
+      synchronized (users) {
+        users.put(userName, user);
+      }
     }
+
     user.addConnection(connection);
   }
 
@@ -350,6 +372,7 @@ public class ProxyManager {
    */
   public void onSubmitRequest(final WorkerConnection workerConnection,
       final MiningSubmitRequest workerRequest) {
+
     if (workerConnection.getPool() != null && workerConnection.getPool().getIsReady()) {
       for (int i = 0; i < workerConnection.getPool().getNumberOfSubmit(); i++) {
         workerConnection.getPool().submitShare(workerRequest,
@@ -398,16 +421,28 @@ public class ProxyManager {
       workerConnection.updateShareLists(share, isAccepted);
 
       workerConnection.getPool().updateShareLists(share, isAccepted);
-
-      User user = users.get(request.getWorkerName());
+      String userName = request.getWorkerName().toLowerCase();
+      // String[] explode = userName.split("\\.");
+      // String index = "";
+      // if (explode.length > 1) {
+      // userName = Stream.of(explode).limit(explode.length - 1).collect(Collectors.joining("."));
+      // index = explode[explode.length - 1];
+      // }
+      User user = users.get(userName);
+      // User user = users.get(request.getWorkerName());
       if (user != null) {
+        LOGGER.debug("update share for user {}.", user.getName());
         user.updateShareLists(share, isAccepted);
         try {
           stratumUserRepo.updateUserByName(user);
         } catch (SQLException | IOException e) {
           e.printStackTrace();
         }
+      } else {
+        LOGGER.debug("Not found user for connection {}.", workerConnection.getConnectionName());
       }
+    } else {
+      LOGGER.debug("Not found pool for connection {}.", workerConnection.getConnectionName());
     }
   }
 
@@ -795,7 +830,7 @@ public class ProxyManager {
     try {
       if (poolRepo.getPoolByHost(poolToAdd.getHost()) != null) {
         return poolToAdd;
-        //poolRepo.updatePoolByHost(poolToAdd);
+        // poolRepo.updatePoolByHost(poolToAdd);
       } else
         poolRepo.addPool(poolToAdd);
     } catch (SQLException | IOException exception) {
@@ -1151,7 +1186,7 @@ public class ProxyManager {
         pool.stopPool("Pool updated and needed to restart.");
       }
       hasBeenStopped = true;
-      pool.setHost(poolToUpdate.getHost());
+      pool.setUpdateHost(poolToUpdate.getHost());
     }
 
     if (poolToUpdate.getIsExtranonceSubscribeEnabled() != null && !poolToUpdate
@@ -1160,7 +1195,7 @@ public class ProxyManager {
         pool.stopPool("Pool updated and needed to restart.");
       }
       hasBeenStopped = true;
-      pool.setIsExtranonceSubscribeEnabled(poolToUpdate.getIsExtranonceSubscribeEnabled());
+      pool.setUpdateIsExtranonceSubscribeEnabled(poolToUpdate.getIsExtranonceSubscribeEnabled());
     }
 
     if (poolToUpdate.getPassword() != null
@@ -1169,16 +1204,16 @@ public class ProxyManager {
         pool.stopPool("Pool updated and needed to restart.");
       }
       hasBeenStopped = true;
-      pool.setPassword(poolToUpdate.getPassword());
+      pool.setUpdatedPassword(poolToUpdate.getPassword());
     }
 
     if (poolToUpdate.getUsername() != null
-        && !poolToUpdate.getUsername().equals(pool.getUsername())) {
+        && !poolToUpdate.getUsername().equalsIgnoreCase(pool.getUsername())) {
       if (!hasBeenStopped) {
         pool.stopPool("Pool updated and needed to restart.");
       }
       hasBeenStopped = true;
-      pool.setUsername(poolToUpdate.getUsername());
+      pool.setUpdatedUsername(poolToUpdate.getUsername());
     }
 
     if (poolToUpdate.getPriority() != null
@@ -1235,6 +1270,10 @@ public class ProxyManager {
     if (hasBeenStopped) {
       pool.startPool(this);
     }
+  }
+
+  public PoolUsersManager getPoolUsersManager() {
+    return poolUsersManager;
   }
 
 }

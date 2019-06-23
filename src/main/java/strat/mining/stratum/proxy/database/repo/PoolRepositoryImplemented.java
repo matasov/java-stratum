@@ -16,6 +16,7 @@ import strat.mining.stratum.proxy.worker.WorkerConnection;
 public class PoolRepositoryImplemented implements PoolRepository {
   private String POOL_TBL = "pool";
   private String POOL_RELATION_TBL = "connection_pool_relations";
+  private String POOL_USERNAME_RELATION_TBL = "username_pool_relations";
 
   public void addPool(Pool pool) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
@@ -87,6 +88,7 @@ public class PoolRepositoryImplemented implements PoolRepository {
     return null;
   }
 
+  @Override
   public List<Pool> getPresentPools() throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql = String.format("select * from %1$s", POOL_TBL);
@@ -141,6 +143,29 @@ public class PoolRepositoryImplemented implements PoolRepository {
     String sql = String.format(
         "select * from %1$s where id = (select pool from %2$s where connection = '%3$s')", POOL_TBL,
         POOL_RELATION_TBL, connectionID);
+    ResultSet rs = null;
+    try {
+      rs = workStatement.executeQuery(sql);
+      while (rs.next()) {
+        Pool row = new ObjectMapper().readValue(rs.getString("pool"), Pool.class);
+        return row;
+      }
+      rs.close();
+    } finally {
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
+    }
+    return null;
+  }
+
+  @Override
+  public Pool getPoolByUserNameStrategy(String userName) throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    String sql = String.format(
+        "select * from %1$s where id = (select pool from %2$s where user_name = '%3$s')", POOL_TBL,
+        POOL_USERNAME_RELATION_TBL, userName);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);

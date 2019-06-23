@@ -53,7 +53,7 @@ public class MiningSubmitRequest extends JsonRpcRequest {
 	}
 
 	public void setWorkerName(String workerName) {
-		this.workerName = workerName;
+		this.workerName = workerName.toLowerCase();
 	}
 
 	public String getJobId() {

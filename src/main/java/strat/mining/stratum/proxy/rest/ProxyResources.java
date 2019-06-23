@@ -1018,11 +1018,11 @@ public class ProxyResources {
     result.setWorkerExtranonce2Size(pool.getWorkerExtranonce2Size());
     result.setPriority(pool.getPriority());
     result.setWeight(pool.getWeight());
-    result.setAcceptedDifficulty(pool.getAcceptedDifficulty());
+    result.setAcceptedDifficulty(pool.getDTOAcceptedDifficulty());
     result.setIsReadySince(pool.getReadySince() != null ? pool.getReadySince().getTime() : null);
     result.setIsActiveSince(pool.getActiveSince() != null ? pool.getActiveSince().getTime() : null);
-    result.setRejectedDifficulty(pool.getRejectedDifficulty());
-    result.setIsExtranonceSubscribeEnabled(pool.isExtranonceSubscribeEnabled());
+    result.setRejectedDifficulty(pool.getDTORejectedDifficulty());
+    result.setIsExtranonceSubscribeEnabled(pool.getIsExtranonceSubscribeEnabled());
     result.setAcceptedHashesPerSeconds(
         Double.valueOf(pool.getAcceptedHashesPerSeconds()).longValue());
     result.setRejectedHashesPerSeconds(

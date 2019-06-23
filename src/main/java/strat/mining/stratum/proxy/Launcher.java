@@ -87,6 +87,7 @@ import strat.mining.stratum.proxy.manager.HashrateRecorder;
 import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.model.User;
 import strat.mining.stratum.proxy.pool.Pool;
+import strat.mining.stratum.proxy.pool.PoolUsersManagerImplemented;
 import strat.mining.stratum.proxy.rest.ProxyResources;
 import strat.mining.stratum.proxy.rest.authentication.AuthenticationAddOn;
 import strat.mining.stratum.proxy.rest.ssl.SSLRedirectAddOn;
@@ -159,6 +160,15 @@ public class Launcher {
         System.out.println("Failed to start the proxy: ");
         e.printStackTrace();
       }
+    }
+
+    try {
+      Pool newPool = new Pool();
+      newPool.setId(UUID.fromString("e1326e69-7325-4046-a891-a53ed7cc1508"));
+      System.out.println("Try get user for incoming name: "
+          + new PoolUsersManagerImplemented().getPoolUserDTOFromRequest(newPool, "andy.1"));
+    } catch (Exception ex) {
+      ex.printStackTrace();
     }
 
   }
@@ -392,9 +402,9 @@ public class Launcher {
       System.out.println("found users from db: " + users);
       if (users != null)
         ProxyManager.getInstance().setUsers(users);
-//      Pool currentPool = new PoolRepositoryImplemented()
-//          .getPoolByConnectionIdStrategy(UUID.fromString("056fa6a8-1f3b-4853-9325-a8274300e523"));
-//      LOGGER.warn("currentPool: " + currentPool);
+      // Pool currentPool = new PoolRepositoryImplemented()
+      // .getPoolByConnectionIdStrategy(UUID.fromString("056fa6a8-1f3b-4853-9325-a8274300e523"));
+      // LOGGER.warn("currentPool: " + currentPool);
     } catch (Exception e) {
       e.printStackTrace();
     }

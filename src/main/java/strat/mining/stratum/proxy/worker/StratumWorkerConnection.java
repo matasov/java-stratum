@@ -182,7 +182,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
       // Throws an exception if the worker is not authorized
       manager.onAuthorizeRequest(this, request);
       response.setIsAuthorized(true);
-      authorizedWorkers.put(request.getUsername(), request.getPassword());
+      authorizedWorkers.put(request.getUsername().toLowerCase(), request.getPassword());
     } catch (AuthorizationException e) {
       response.setIsAuthorized(false);
       JsonRpcError error = new JsonRpcError();
@@ -205,6 +205,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     JsonRpcError error = null;
     try {
       pool = manager.onSubscribeRequest(this, request);
+      LOGGER.info("Availabel pool {} for request {}", pool.getName(), request.getJsonrpc()); 
     } catch (NoPoolAvailableException e) {
       LOGGER.error(
           "No pool available for the connection {}. Sending error and close the connection.",
@@ -256,7 +257,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     response.setId(request.getId());
     JsonRpcError error = null;
 
-    if (authorizedWorkers.get(request.getWorkerName()) != null) {
+    if (authorizedWorkers.get(request.getWorkerName().toLowerCase()) != null) {
       // Modify the request to add the tail of extranonce1 to the
       // submitted extranonce2
       request.setExtranonce2(extranonce1Tail + request.getExtranonce2());
@@ -275,7 +276,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
         response.setErrorRpc(error);
         LOGGER.debug(
             "Share submitted by {}@{} is above the target. The share is not submitted to the pool.",
-            (String) request.getWorkerName(), getConnectionName());
+            (String) request.getWorkerName().toLowerCase(), getConnectionName());
         sendResponse(response);
       }
     } else {
@@ -284,6 +285,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
       error.setMessage("Submit failed. Worker not authorized on this connection.");
       response.setErrorRpc(error);
       sendResponse(response);
+      //LOGGER.error(msg);
     }
   }
 
@@ -333,10 +335,10 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
 
     if (poolResponse.getIsAccepted() != null && poolResponse.getIsAccepted()) {
       LOGGER.info("Accepted share (diff: {}) from {}@{} on {}. Yeah !!!!", difficultyString,
-          workerRequest.getWorkerName(), getConnectionName(), pool.getName());
+          workerRequest.getWorkerName().toLowerCase(), getConnectionName(), pool.getName());
     } else {
       LOGGER.info("REJECTED share (diff: {}) from {}@{} on {}. Booo !!!!. Error: {}",
-          difficultyString, workerRequest.getWorkerName(), getConnectionName(), pool.getName(),
+          difficultyString, workerRequest.getWorkerName().toLowerCase(), getConnectionName(), pool.getName(),
           poolResponse.getJsonError());
     }
 

@@ -27,7 +27,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import lombok.Getter;
+import lombok.Setter;
 import strat.mining.stratum.proxy.constant.Constants;
+import strat.mining.stratum.proxy.manager.ProxyManager;
 import strat.mining.stratum.proxy.utils.EquatableWeakReference;
 import strat.mining.stratum.proxy.utils.mining.HashrateUtils;
 import strat.mining.stratum.proxy.worker.WorkerConnection;
@@ -39,7 +44,11 @@ import strat.mining.stratum.proxy.worker.WorkerConnection;
  * 
  */
 public class User {
+  
+  private static final Logger LOGGER = LoggerFactory.getLogger(User.class);
 
+  @Setter
+  @Getter
   private UUID id;
 
   private String name;
@@ -69,7 +78,8 @@ public class User {
 
   public User(String name) {
     id = UUID.randomUUID();
-    this.name = name.toLowerCase();
+    this.name = name;
+    LOGGER.info("create user with name {}.", name);
     creationTime = new Date();
     lastAcceptedShares = new ConcurrentLinkedDeque<Share>();
     lastRejectedShares = new ConcurrentLinkedDeque<Share>();
@@ -159,6 +169,11 @@ public class User {
 
   public String getName() {
     return name;
+  }
+  
+  public void setName(String name) {
+    LOGGER.info("create user with name {}.", name);
+    this.name = name;
   }
 
   public Date getLastShareSubmitted() {

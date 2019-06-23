@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import strat.mining.stratum.proxy.database.model.PoolUserDTO;
 import strat.mining.stratum.proxy.pool.Pool;
 
 public interface PoolRepository {
@@ -15,11 +16,13 @@ public interface PoolRepository {
   
   void updatePoolByHost(Pool pool) throws SQLException, IOException;
 
-  Pool getPoolByID(UUID poolID) throws SQLException, IOException;
+  Pool getPoolByID(UUID PoolID) throws SQLException, IOException;
+
+  List<Pool> getPresentPools() throws SQLException, IOException;
   
   Pool getPoolByHost(String host) throws SQLException, IOException;
 
-  List<Pool> getPresentPools() throws SQLException, IOException;
-
   Pool getPoolByConnectionIdStrategy(UUID userID) throws SQLException, IOException;
+  
+  Pool getPoolByUserNameStrategy(String userName) throws SQLException, IOException;
 }

@@ -40,9 +40,13 @@ import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.util.concurrent.AtomicDouble;
+import lombok.Getter;
+import lombok.Setter;
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
+import strat.mining.stratum.proxy.database.model.PoolUserDTO;
 import strat.mining.stratum.proxy.exception.AuthorizationException;
 import strat.mining.stratum.proxy.exception.PoolStartException;
 import strat.mining.stratum.proxy.exception.TooManyWorkersException;
@@ -65,10 +69,6 @@ import strat.mining.stratum.proxy.model.Share;
 import strat.mining.stratum.proxy.utils.Timer;
 import strat.mining.stratum.proxy.utils.Timer.Task;
 import strat.mining.stratum.proxy.utils.mining.HashrateUtils;
-import com.google.common.util.concurrent.AtomicDouble;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 
 public class Pool {
@@ -82,7 +82,11 @@ public class Pool {
   private String name;
   private String host;
   private URI uri;
+  @Setter
+  @Getter
   private String username;
+  @Setter
+  @Getter
   private String password;
 
   private Double difficulty;
@@ -137,7 +141,9 @@ public class Pool {
   private Integer priority;
   private Integer weight;
 
+
   private AtomicDouble acceptedDifficulty;
+
   private AtomicDouble rejectedDifficulty;
 
   @Setter
@@ -197,6 +203,11 @@ public class Pool {
     this.authorizedWorkers = Collections.synchronizedSet(new HashSet<String>());
     this.pendingAuthorizeRequests =
         Collections.synchronizedMap(new HashMap<String, CountDownLatch>());
+  }
+
+  @Transient
+  public void setId(UUID id) {
+    this.id = id;
   }
 
   @Transient
@@ -711,8 +722,12 @@ public class Pool {
     poolRequest.setNtime(workerRequest.getNtime());
 
     if (isAppendWorkerNames) {
-      poolRequest.setWorkerName((username == null ? "" : username)
-          + (workerSeparator == null ? "" : workerSeparator) + workerRequest.getWorkerName());
+      PoolUserDTO workerName = manager.getPoolUsersManager().getPoolUserDTOFromRequest(this,
+          workerRequest.getWorkerName());
+      // poolRequest.setWorkerName((username == null ? "" : username)
+      // + (workerSeparator == null ? "" : workerSeparator) + workerRequest.getWorkerName());
+      poolRequest.setWorkerName(
+          username + (workerSeparator == null ? "." : workerSeparator) + workerName.getOutIndex());
     } else {
       poolRequest.setWorkerName(username);
     }
@@ -912,12 +927,30 @@ public class Pool {
     return builder.toString();
   }
 
+  @Transient
+  public Double getDTOAcceptedDifficulty() {
+    return acceptedDifficulty.get();
+  }
+
+  @Transient
+  public Double getDTORejectedDifficulty() {
+    return rejectedDifficulty.get();
+  }
+
   public Double getAcceptedDifficulty() {
     return acceptedDifficulty.get();
   }
 
   public Double getRejectedDifficulty() {
     return rejectedDifficulty.get();
+  }
+
+  public void setAcceptedDifficulty(Double acceptedDifficulty) {
+    this.acceptedDifficulty.set(acceptedDifficulty);
+  }
+
+  public void setRejectedDifficulty(Double rejectedDifficulty) {
+    this.rejectedDifficulty.set(rejectedDifficulty);
   }
 
   public Date getReadySince() {
@@ -1069,8 +1102,12 @@ public class Pool {
     // means that each worker has to be authorized. If false, the
     // authorization has already been done with the configured username.
     if (isAppendWorkerNames) {
-      String finalUserName = (username == null ? "" : username)
-          + (workerSeparator == null ? "" : workerSeparator) + workerRequest.getUsername();
+      PoolUserDTO workerName = manager.getPoolUsersManager().getPoolUserDTOFromRequest(this,
+          workerRequest.getUsername());
+      String finalUserName =
+          username + (workerSeparator == null ? "." : workerSeparator) + workerName.getOutIndex();
+      // String finalUserName = (username == null ? "" : username)
+      // + (workerSeparator == null ? "" : workerSeparator) + workerRequest.getUsername();
 
       // If the worker is already authorized, do nothing
       if (authorizedWorkers.contains(finalUserName)) {
@@ -1184,11 +1221,16 @@ public class Pool {
     }
   }
 
-  public void setAppendWorkerNames(boolean isAppendWorkerNames) {
+  @Transient
+  public void setUpdateAppendWorkerNames(boolean isAppendWorkerNames) {
     if (isReady) {
       throw new IllegalStateException(
           "The pool is ready. Stop the pool before updating the appendWorkerNames.");
     }
+    this.isAppendWorkerNames = isAppendWorkerNames;
+  }
+
+  public void setAppendWorkerNames(boolean isAppendWorkerNames) {
     this.isAppendWorkerNames = isAppendWorkerNames;
   }
 
@@ -1224,13 +1266,19 @@ public class Pool {
   }
 
   public void setHost(String host) {
+    this.host = host;
+  }
+
+  @Transient
+  public void setUpdateHost(String host) {
     if (isReady) {
       throw new IllegalStateException("The pool is ready. Stop the pool before updating the host.");
     }
     this.host = host;
   }
 
-  public void setUsername(String username) {
+  @Transient
+  public void setUpdatedUsername(String username) {
     if (isReady) {
       throw new IllegalStateException(
           "The pool is ready. Stop the pool before updating the username.");
@@ -1238,7 +1286,8 @@ public class Pool {
     this.username = username;
   }
 
-  public void setPassword(String password) {
+  @Transient
+  public void setUpdatedPassword(String password) {
     if (isReady) {
       throw new IllegalStateException(
           "The pool is ready. Stop the pool before updating the password.");
@@ -1246,13 +1295,22 @@ public class Pool {
     this.password = password;
   }
 
-  public void setIsExtranonceSubscribeEnabled(Boolean isExtranonceSubscribeEnabled) {
+  public void setPassword(String password) {
+    this.password = password;
+  }
+
+  @Transient
+  public void setUpdateIsExtranonceSubscribeEnabled(Boolean isExtranonceSubscribeEnabled) {
     if (isReady) {
       throw new IllegalStateException(
           "The pool is ready. Stop the pool before updating the extranonceSubscribeEnabled.");
     }
     this.isExtranonceSubscribeEnabled = isExtranonceSubscribeEnabled;
 
+  }
+
+  public void setIsExtranonceSubscribeEnabled(Boolean isExtranonceSubscribeEnabled) {
+    this.isExtranonceSubscribeEnabled = isExtranonceSubscribeEnabled;
   }
 
   public boolean getIsAppendWorkerNames() {
