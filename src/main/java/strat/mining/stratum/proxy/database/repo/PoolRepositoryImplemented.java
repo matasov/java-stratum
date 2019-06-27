@@ -76,6 +76,8 @@ public class PoolRepositoryImplemented implements PoolRepository {
       rs = workStatement.executeQuery(sql);
       while (rs.next()) {
         Pool row = new ObjectMapper().readValue(rs.getString("pool"), Pool.class);
+        row.setId(UUID.fromString(rs.getString("id")));
+        row.setAppendWorkerNames(true);
         return row;
       }
       rs.close();
@@ -101,6 +103,8 @@ public class PoolRepositoryImplemented implements PoolRepository {
         while (rs.next()) {
           System.out.println("pool json: " + rs.getString("pool"));
           Pool row = new ObjectMapper().readValue(rs.getString("pool"), Pool.class);
+          row.setId(UUID.fromString(rs.getString("id")));
+          row.setAppendWorkerNames(true);
           resultSet.add(row);
         }
         return resultSet;
@@ -124,6 +128,8 @@ public class PoolRepositoryImplemented implements PoolRepository {
       while (rs.next()) {
         Pool row =
             new ObjectMapper().readValue(rs.getString("pool"), Pool.class);
+        row.setId(UUID.fromString(rs.getString("id")));
+        row.setAppendWorkerNames(true);
         // Start the getwork timeout
         return row;
       }
@@ -148,6 +154,8 @@ public class PoolRepositoryImplemented implements PoolRepository {
       rs = workStatement.executeQuery(sql);
       while (rs.next()) {
         Pool row = new ObjectMapper().readValue(rs.getString("pool"), Pool.class);
+        row.setId(UUID.fromString(rs.getString("id")));
+        row.setAppendWorkerNames(true);
         return row;
       }
       rs.close();
@@ -171,6 +179,8 @@ public class PoolRepositoryImplemented implements PoolRepository {
       rs = workStatement.executeQuery(sql);
       while (rs.next()) {
         Pool row = new ObjectMapper().readValue(rs.getString("pool"), Pool.class);
+        row.setId(UUID.fromString(rs.getString("id")));
+        row.setAppendWorkerNames(true);
         return row;
       }
       rs.close();

@@ -253,25 +253,40 @@ public class PriorityDBStrategyManager extends MonoCurrentPoolStrategyManager {
 
   @Override
   public Pool getPoolForConnection(WorkerConnection connection) throws NoPoolAvailableException {
-    LOGGER.warn("try search pool for connection: " + connection.getId());
+    LOGGER.warn("try search pool for connection: " + connection.getId() + ", "
+        + connection.getConnectionName());
     Pool presentedPool = null;
     try {
       // presentedPool = poolRepo.getPoolByConnectionIdStrategy(connection.getId());
       List<String> userNames = connection.getAuthorizedWorkers().entrySet().stream().limit(1)
           .map(x -> x.getKey()).collect(Collectors.toList());
       if (userNames == null || userNames.isEmpty()) {
-        throw new NoPoolAvailableException();
-      }
-      presentedPool = poolRepo.getPoolByUserNameStrategy(userNames.get(0));
-      List<Pool> pools = getProxyManager().getPools();
-      if (presentedPool != null)
-        for (Pool current : pools) {
-          if (current.getId().equals(presentedPool.getId()) && current.getIsReady()
-              && current.getIsEnabled() && current.getIsStable()) {
-            presentedPool = current;
-            break;
+        LOGGER.error("not found users for connection: " + connection.getConnectionName()
+            + " workers: " + connection.getAuthorizedWorkers());
+        // throw new NoPoolAvailableException();
+      } else {
+        LOGGER.debug("getPoolForConnection : {} find user: {}", connection.getConnectionName(),
+            userNames);
+        presentedPool = poolRepo.getPoolByUserNameStrategy(userNames.get(0));
+        List<Pool> pools = getProxyManager().getPools();
+        if (presentedPool != null) {
+          for (Pool current : pools) {
+            try {
+              if (current.getId().equals(presentedPool.getId()) && current.getIsReady()
+                  && current.getIsEnabled() && current.getIsStable()) {
+                presentedPool = current;
+                break;
+              }
+            } catch (Exception ex) {
+              LOGGER.error("dbPool[" + presentedPool.getName() + "]: " + presentedPool.getId()
+                  + ", current pool[" + current.getName() + "]: " + current.getId());
+              ex.printStackTrace();
+            }
           }
+          LOGGER.debug("getPoolForConnection : {} find pool: {}", connection.getConnectionName(),
+              presentedPool.getName());
         }
+      }
       computeCurrentPool();
     } catch (Exception ex) {
       StringWriter errors = new StringWriter();
@@ -280,6 +295,7 @@ public class PriorityDBStrategyManager extends MonoCurrentPoolStrategyManager {
       ex.printStackTrace();
       throw new NoPoolAvailableException();
     }
+    Pool workingPool = presentedPool == null ? getCurrentPool() : presentedPool;
 
     LOGGER.warn("found pool: " + (presentedPool == null ? getCurrentPool() : presentedPool));
     return presentedPool == null ? getCurrentPool() : presentedPool;

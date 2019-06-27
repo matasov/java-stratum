@@ -77,6 +77,8 @@ public class Pool {
 
   private ProxyManager manager;
 
+  @Setter
+  @Getter
   private UUID id;
 
   private String name;
