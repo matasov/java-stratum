@@ -162,15 +162,6 @@ public class Launcher {
       }
     }
 
-    try {
-      Pool newPool = new Pool();
-      newPool.setId(UUID.fromString("e1326e69-7325-4046-a891-a53ed7cc1508"));
-      System.out.println("Try get user for incoming name: "
-          + new PoolUsersManagerImplemented().getPoolUserDTOFromRequest(newPool, "andy.1"));
-    } catch (Exception ex) {
-      ex.printStackTrace();
-    }
-
   }
 
   /**

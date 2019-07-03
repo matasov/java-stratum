@@ -16,7 +16,7 @@
 	</appender>
 
 	<appender name="file" class="org.apache.log4j.RollingFileAppender">
-		<param name="File" value="${log.directory.path}/java-stratum.log" />
+		<param name="File" value="${log.directory.path}/stratum-proxy.log" />
 		<param name="MaxFileSize" value="100000000" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d{ISO8601} %-5p [%t]: [%c{1}] 

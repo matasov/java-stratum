@@ -40,13 +40,13 @@ Install the JVM for your operating system (if not already done)
 Then unzip the zip file in a directory and launch the proxy through the following command line:
 
 ```sh
-java -jar java-stratum.jar proxyOptions
+java -jar stratum-proxy.jar proxyOptions
 ```
 
 ##Usage
 
 ```sh
-java -jar java-stratum.jar --help
+java -jar stratum-proxy.jar --help
 ```
 
 ##Raspberry Pi Installation (Raspbian)
@@ -55,7 +55,7 @@ Once your OS is setup on the Raspberry Pi (Raspbian), perform the following (rep
 1. Install JDK and Screen onto the Raspberry Pi
 <br/>`sudo apt-get update && sudo apt-get install oracle-java7-jdk screen`
 
-2. Download java-stratum to the /opt folder
+2. Download stratum-proxy to the /opt folder
 <br/>`cd /opt`
 <br/>`sudo wget https://github.com/Stratehm/stratum-proxy/releases/download/x.x.x/stratum-proxy-x.x.x.zip`
 
@@ -1619,7 +1619,6 @@ Return the list of all worker connections.
 
 
 GPLv3
-
 
 
     
