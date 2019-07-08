@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -169,7 +170,7 @@ public class PriorityDBStrategyManager extends MonoCurrentPoolStrategyManager {
     try {
       Pool oldCurrentPool = getCurrentPool();
       // start update
-
+      String userName = null;
       List<Pool> pools = getProxyManager().getPools();
       Pool currentPool = computeInternal();
       // computeCurrentPool();
@@ -187,10 +188,11 @@ public class PriorityDBStrategyManager extends MonoCurrentPoolStrategyManager {
           try {
             List<String> userNames = connection.getAuthorizedWorkers().entrySet().stream().limit(1)
                 .map(x -> x.getKey()).collect(Collectors.toList());
-            if (userNames == null || userNames.isEmpty()) {
-              throw new NoPoolAvailableException();
+            if (userNames != null && !userNames.isEmpty()) {
+              userName = userNames.get(0);
+              // throw new NoPoolAvailableException();
             }
-            dbPool = poolRepo.getPoolByUserNameStrategy(userNames.get(0));
+            dbPool = poolRepo.getPoolByUserNameStrategy(userName);
             // dbPool = poolRepo.getPoolByConnectionIdStrategy(connection.getId());
             if (dbPool != null)
               for (Pool currentManagerPool : pools) {
@@ -215,6 +217,40 @@ public class PriorityDBStrategyManager extends MonoCurrentPoolStrategyManager {
                       ? (connection.getConnectionName() + "[" + connection.getId() + "] ")
                       : "none",
                   currentPool != null ? currentPool.getName() : "none");
+              Pool virtualPool = null;
+              // if (currentPool.getId()
+              // .equals(UUID.fromString("4fb779b3-ef50-48ed-a403-17ba5f343b9b"))) {
+              if (userName != null) {
+                virtualPool =
+                    getProxyManager().getPoolForUserName(currentPool, userName.toLowerCase());
+                // if (virtualPool == null) {
+                // virtualPool = new Pool(currentPool.getName(), currentPool.getHost(),
+                // currentPool.getUsername(), currentPool.getPassword());
+                // // virtualPool.setId(currentPool.getId());
+                // virtualPool
+                // .setExtranonceSubscribeEnabled(currentPool.getIsExtranonceSubscribeEnabled());
+                //
+                // virtualPool.setAppendWorkerNames(currentPool.getIsAppendWorkerNames());
+                // virtualPool.setWorkerSeparator(Constants.DEFAULT_WORKER_NAME_SEPARTOR);
+                // virtualPool.setUseWorkerPassword(false);
+                // virtualPool.setPriority(currentPool.getPriority());
+                // virtualPool.setWeight(currentPool.getWeight());
+                //
+                // try {
+                // virtualPool.setEnabled(true, getProxyManager());
+                // virtualPool.startPool(getProxyManager());
+                // this.getProxyManager().addReadyVirtualPool(connection.getId(), virtualPool);
+                // getProxyManager().addPoolForUserName(currentPool, userName.toLowerCase(),
+                // virtualPool);
+                // } catch (SocketException | PoolStartException | URISyntaxException e) {
+                // LOGGER.error("error in pool: {} {}", virtualPool.getName(),
+                // ExceptionUtils.getStackTrace(e));
+                // }
+              }
+              if (virtualPool != null)
+                currentPool = virtualPool;
+              // }
+              // }
               proxyManager.switchPoolForConnection(connection, currentPool);
             } catch (TooManyWorkersException e) {
               LOGGER.warn(
@@ -224,8 +260,8 @@ public class PriorityDBStrategyManager extends MonoCurrentPoolStrategyManager {
               LOGGER.info(
                   "Close connection {} since the on-the-fly extranonce change is not supported.",
                   connection.getConnectionName(), currentPool.getName());
-              connection.close();
-              proxyManager.onWorkerDisconnection(connection, e);
+              // connection.close();
+              // proxyManager.onWorkerDisconnection(connection, e);
             } catch (Exception ex) {
               StringWriter errors = new StringWriter();
               ex.printStackTrace(new PrintWriter(errors));
@@ -256,18 +292,20 @@ public class PriorityDBStrategyManager extends MonoCurrentPoolStrategyManager {
     LOGGER.warn("try search pool for connection: " + connection.getId() + ", "
         + connection.getConnectionName());
     Pool presentedPool = null;
+    String userName = null;
     try {
       // presentedPool = poolRepo.getPoolByConnectionIdStrategy(connection.getId());
       List<String> userNames = connection.getAuthorizedWorkers().entrySet().stream().limit(1)
           .map(x -> x.getKey()).collect(Collectors.toList());
       if (userNames == null || userNames.isEmpty()) {
-        LOGGER.error("not found users for connection: " + connection.getConnectionName()
-            + " workers: " + connection.getAuthorizedWorkers());
+        // LOGGER.error("not found users for connection: " + connection.getConnectionName()
+        // + " workers: " + connection.getAuthorizedWorkers());
         // throw new NoPoolAvailableException();
       } else {
         LOGGER.debug("getPoolForConnection : {} find user: {}", connection.getConnectionName(),
             userNames);
-        presentedPool = poolRepo.getPoolByUserNameStrategy(userNames.get(0));
+        userName = userNames.get(0);
+        presentedPool = poolRepo.getPoolByUserNameStrategy(userName);
         List<Pool> pools = getProxyManager().getPools();
         if (presentedPool != null) {
           for (Pool current : pools) {
@@ -275,6 +313,38 @@ public class PriorityDBStrategyManager extends MonoCurrentPoolStrategyManager {
               if (current.getId().equals(presentedPool.getId()) && current.getIsReady()
                   && current.getIsEnabled() && current.getIsStable()) {
                 presentedPool = current;
+                Pool virtualPool = null;
+                // if (currentPool.getId()
+                // .equals(UUID.fromString("4fb779b3-ef50-48ed-a403-17ba5f343b9b"))) {
+                if (userName != null) {
+                  virtualPool =
+                      getProxyManager().getPoolForUserName(presentedPool, userName.toLowerCase());
+                  // if (virtualPool == null) {
+                  // virtualPool = new Pool(currentPool.getName(), currentPool.getHost(),
+                  // currentPool.getUsername(), currentPool.getPassword());
+                  // // virtualPool.setId(currentPool.getId());
+                  // virtualPool
+                  // .setExtranonceSubscribeEnabled(currentPool.getIsExtranonceSubscribeEnabled());
+                  //
+                  // virtualPool.setAppendWorkerNames(currentPool.getIsAppendWorkerNames());
+                  // virtualPool.setWorkerSeparator(Constants.DEFAULT_WORKER_NAME_SEPARTOR);
+                  // virtualPool.setUseWorkerPassword(false);
+                  // virtualPool.setPriority(currentPool.getPriority());
+                  // virtualPool.setWeight(currentPool.getWeight());
+                  //
+                  // try {
+                  // virtualPool.setEnabled(true, getProxyManager());
+                  // virtualPool.startPool(getProxyManager());
+                  // this.getProxyManager().addReadyVirtualPool(connection.getId(), virtualPool);
+                  // getProxyManager().addPoolForUserName(currentPool, userName.toLowerCase(),
+                  // virtualPool);
+                  // } catch (SocketException | PoolStartException | URISyntaxException e) {
+                  // LOGGER.error("error in pool: {} {}", virtualPool.getName(),
+                  // ExceptionUtils.getStackTrace(e));
+                  // }
+                }
+                if (virtualPool != null)
+                  presentedPool = virtualPool;
                 break;
               }
             } catch (Exception ex) {
@@ -295,6 +365,7 @@ public class PriorityDBStrategyManager extends MonoCurrentPoolStrategyManager {
       ex.printStackTrace();
       throw new NoPoolAvailableException();
     }
+
     Pool workingPool = presentedPool == null ? getCurrentPool() : presentedPool;
 
     LOGGER.warn("found pool: " + (presentedPool == null ? getCurrentPool() : presentedPool));

@@ -33,10 +33,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
@@ -115,6 +117,10 @@ public class ProxyManager {
 
   private Map<Pool, Set<WorkerConnection>> poolWorkerConnections;
 
+  private Map<UUID, HashMap<String, UUID>> poolForUsersAndInherits;
+
+  private Map<UUID, UUID> freePools;
+
   private boolean closeRequested = false;
 
   private AuthorizationManager stratumAuthorizationManager;
@@ -130,6 +136,9 @@ public class ProxyManager {
     this.users = Collections.synchronizedMap(new HashMap<String, User>());
     this.poolWorkerConnections =
         Collections.synchronizedMap(new HashMap<Pool, Set<WorkerConnection>>());
+    this.poolForUsersAndInherits =
+        Collections.synchronizedMap(new HashMap<UUID, HashMap<String, UUID>>());
+    freePools = Collections.synchronizedMap(new HashMap<UUID, UUID>());
     this.poolSwitchingStrategyFactory = new PoolSwitchingStrategyFactory(this);
 
     setPoolSwitchingStrategy(ConfigurationManager.getInstance().getPoolSwitchingStrategy());
@@ -602,7 +611,7 @@ public class ProxyManager {
   public void switchPoolForConnection(WorkerConnection connection, Pool newPool)
       throws TooManyWorkersException, ChangeExtranonceNotSupportedException {
     // If the old pool is the same as the new pool, do nothing.
-    if (!newPool.equals(connection.getPool())) {
+    if (!newPool.getId().equals(connection.getPool().getId())) {
       // Remove the connection from the old pool connection list.
       Set<WorkerConnection> oldPoolConnections = getPoolWorkerConnections(connection.getPool());
       if (oldPoolConnections != null) {
@@ -1274,6 +1283,82 @@ public class ProxyManager {
 
   public PoolUsersManager getPoolUsersManager() {
     return poolUsersManager;
+  }
+
+  public synchronized Pool getPoolForUserName(Pool parentPool, String userName) {
+    if (userName == null) {
+      LOGGER.info("for pool {}[{}] username is null", parentPool.getName(), parentPool.getId());
+      return null;
+    }
+    if (poolForUsersAndInherits.get(parentPool.getId()) == null) {
+      poolForUsersAndInherits.put(parentPool.getId(), new HashMap<>());
+    }
+    HashMap<String, UUID> poolValues = poolForUsersAndInherits.get(parentPool.getId());
+    UUID virtualPoolID = null;
+    if (!poolValues.containsKey(userName.toLowerCase())) {
+
+      virtualPoolID = getFreePool(parentPool);
+      LOGGER.warn("freePools size: {}", freePools.size());
+      freePools.entrySet().stream().forEach(x -> {
+        LOGGER.info("next element: parent: {} contains: {}", x.getKey(), x.getValue());
+      });
+      LOGGER.info("getPoolForUserName username: {} for parent {} found pool: {}", userName,
+          parentPool.getName(), virtualPoolID);
+      Pool virtualPool = new Pool(parentPool.getName(), parentPool.getHost(),
+          parentPool.getUsername(), parentPool.getPassword());
+      // virtualPool.setId(currentPool.getId());
+      virtualPool.setExtranonceSubscribeEnabled(parentPool.getIsExtranonceSubscribeEnabled());
+      virtualPool.setParentPool(parentPool);
+      virtualPool.setAppendWorkerNames(parentPool.getIsAppendWorkerNames());
+      virtualPool.setWorkerSeparator(Constants.DEFAULT_WORKER_NAME_SEPARTOR);
+      virtualPool.setUseWorkerPassword(false);
+      virtualPool.setPriority(parentPool.getPriority());
+      virtualPool.setWeight(parentPool.getWeight());
+
+      try {
+        virtualPool.setEnabled(true, this);
+        virtualPool.startPool(this);
+        addFreePool(parentPool, virtualPool.getId());
+        addPoolForUserName(parentPool, userName.toLowerCase(), virtualPoolID);
+        pools.add(virtualPool);
+      } catch (SocketException | PoolStartException | URISyntaxException e) {
+        LOGGER.error("error in pool: {} {}", virtualPool.getName(),
+            ExceptionUtils.getStackTrace(e));
+      }
+    } else {
+      virtualPoolID = poolValues.get(userName.toLowerCase());
+    }
+    final UUID finalUUID = virtualPoolID;
+    // pools.parallelStream().forEach(x -> {
+    // LOGGER.info("for id {} found: {}", poolValues.get(userName.toLowerCase()),
+    // x.getId().equals(poolValues.get(userName.toLowerCase())));
+    // });
+    // LOGGER.info("try found username {} in pool {} ? {}", userName, parentPool.getId(),
+    // pools.parallelStream()
+    // .filter(x -> x.getId().equals(poolValues.get(userName.toLowerCase()))).findAny()
+    // .orElse(null).getId());
+    return pools.parallelStream().filter(x -> x.getId().equals(finalUUID)).findAny().orElse(null);
+  }
+
+  public synchronized void addPoolForUserName(Pool parentPool, String userName,
+      UUID virtualPoolId) {
+    if (userName == null)
+      return;
+    HashMap<String, UUID> poolValues = poolForUsersAndInherits.get(parentPool.getId());
+    if (poolValues == null) {
+      poolValues = new HashMap<>();
+    }
+    LOGGER.info("add new user {} to pool {}", userName.toLowerCase(), parentPool.getId());
+    poolValues.put(userName.toLowerCase(), virtualPoolId);
+    poolForUsersAndInherits.put(parentPool.getId(), poolValues);
+  }
+
+  public synchronized UUID getFreePool(Pool parentPool) {
+    return freePools.get(parentPool.getId());
+  }
+
+  public synchronized void addFreePool(Pool parentPool, UUID newPool) {
+    freePools.put(parentPool.getId(), newPool);
   }
 
 }

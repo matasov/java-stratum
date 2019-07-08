@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import javax.ws.rs.core.UriBuilder;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -375,6 +376,20 @@ public class Launcher {
     }
   }
 
+  private static Pool createNewVirtualStartingPool(Pool currentPool) {
+    Pool virtualPool = new Pool(currentPool.getName(), currentPool.getHost(),
+        currentPool.getUsername(), currentPool.getPassword());
+    virtualPool.setParentPool(currentPool);
+    virtualPool.setExtranonceSubscribeEnabled(currentPool.getIsExtranonceSubscribeEnabled());
+    virtualPool.setAppendWorkerNames(currentPool.getIsAppendWorkerNames());
+    virtualPool.setWorkerSeparator(Constants.DEFAULT_WORKER_NAME_SEPARTOR);
+    virtualPool.setUseWorkerPassword(false);
+    virtualPool.setPriority(currentPool.getPriority());
+    virtualPool.setWeight(currentPool.getWeight());
+    ProxyManager.getInstance().addFreePool(currentPool, virtualPool.getId());
+    return virtualPool;
+  }
+
   /**
    * Initialize the proxy manager
    * 
@@ -393,13 +408,26 @@ public class Launcher {
       System.out.println("found users from db: " + users);
       if (users != null)
         ProxyManager.getInstance().setUsers(users);
+      if (dbPools != null) {
+        List<Pool> virtualPools = new ArrayList<>(dbPools.size());
+        dbPools.stream().forEach(x -> {
+          try {
+            virtualPools.add(createNewVirtualStartingPool(x));
+            LOGGER.info("check: for pool {} found free: {}", x.getName(),
+                ProxyManager.getInstance().getFreePool(x));
+          } catch (Exception ex) {
+            LOGGER.error("error in check! ", ExceptionUtils.getStackTrace(ex));
+          }
+        });
+        dbPools.addAll(virtualPools);
+      }
       // Pool currentPool = new PoolRepositoryImplemented()
       // .getPoolByConnectionIdStrategy(UUID.fromString("056fa6a8-1f3b-4853-9325-a8274300e523"));
       // LOGGER.warn("currentPool: " + currentPool);
     } catch (Exception e) {
       e.printStackTrace();
     }
-
+    
     // try {
     // // test
     // new StratumUserRepositoryImplemented().addUser(new User("test" + new Random().nextInt(10)));
@@ -428,8 +456,11 @@ public class Launcher {
 
     // Start the pools.
     ProxyManager.getInstance().startPools(pools);
-
-    if (!ConfigurationManager.getInstance().isDisableStratum()) {
+//    LOGGER.info("test out index: {}", ProxyManager.getInstance().getPoolUsersManager().getPoolUserDTOFromRequest(dbPools.parallelStream()
+//        .filter(x -> x.getId().equals(UUID.fromString("4fb779b3-ef50-48ed-a403-17ba5f343b9b")))
+//        .findAny().orElse(null),
+//          "dmitriy"));
+    if (!ConfigurationManager.getInstance().isDisableStratum()) { 
       // Start to accept incoming workers connections
       ProxyManager.getInstance().startListeningIncomingConnections(
           configurationManager.getStratumBindAddress(),

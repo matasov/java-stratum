@@ -70,7 +70,7 @@ public abstract class StratumConnection implements Connection {
   @Setter
   @Getter
   protected String name = "undefined";
-  
+
   @Setter
   @Getter
   protected boolean isConnected = true;
@@ -533,7 +533,8 @@ public abstract class StratumConnection implements Connection {
     name = "undefined";
     if (socket != null) {
       if (socket.getRemoteSocketAddress() instanceof InetSocketAddress) {
-        name = ((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress().getHostAddress();
+        name = ((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress().getHostAddress()
+            + ":" + ((InetSocketAddress) socket.getRemoteSocketAddress()).getPort();
       } else {
         if (socket.getRemoteSocketAddress() != null)
           name = socket.getRemoteSocketAddress().toString();

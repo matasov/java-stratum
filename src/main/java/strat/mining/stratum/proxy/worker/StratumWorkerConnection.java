@@ -115,7 +115,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
   public UUID getId() {
     return id;
   }
-  
+
   @Override
   public boolean getIsConnected() {
     return isConnected;
@@ -205,7 +205,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     JsonRpcError error = null;
     try {
       pool = manager.onSubscribeRequest(this, request);
-      LOGGER.info("Availabel pool {} for request {}", pool.getName(), request.getJsonrpc()); 
+      LOGGER.info("Availabel pool {} for request {}", pool.getName(), request.getJsonrpc());
     } catch (NoPoolAvailableException e) {
       LOGGER.error(
           "No pool available for the connection {}. Sending error and close the connection.",
@@ -285,7 +285,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
       error.setMessage("Submit failed. Worker not authorized on this connection.");
       response.setErrorRpc(error);
       sendResponse(response);
-      //LOGGER.error(msg);
+      // LOGGER.error(msg);
     }
   }
 
@@ -334,12 +334,13 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
     }
 
     if (poolResponse.getIsAccepted() != null && poolResponse.getIsAccepted()) {
-      LOGGER.info("Accepted share (diff: {}) from {}@{} on {}. Yeah !!!!", difficultyString,
-          workerRequest.getWorkerName().toLowerCase(), getConnectionName(), pool.getName());
+      LOGGER.info("Accepted share (diff: {}) from {}@{} on {}[{}]. Yeah !!!!", difficultyString,
+          workerRequest.getWorkerName().toLowerCase(), getConnectionName(), pool.getName(),
+          pool.getId());
     } else {
       LOGGER.info("REJECTED share (diff: {}) from {}@{} on {}. Booo !!!!. Error: {}",
-          difficultyString, workerRequest.getWorkerName().toLowerCase(), getConnectionName(), pool.getName(),
-          poolResponse.getJsonError());
+          difficultyString, workerRequest.getWorkerName().toLowerCase(), getConnectionName(),
+          pool.getName(), poolResponse.getJsonError());
     }
 
     MiningSubmitResponse workerResponse = new MiningSubmitResponse();
@@ -355,7 +356,8 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
    * exception if the extranonce change is not supported on the fly.
    */
   public void onPoolExtranonceChange() throws ChangeExtranonceNotSupportedException {
-    if (isSetExtranonceNotificationSupported) {
+    if (true) {
+      // if (isSetExtranonceNotificationSupported) {
       extranonce2Size = pool.getWorkerExtranonce2Size();
       MiningSetExtranonceNotification extranonceNotif = new MiningSetExtranonceNotification();
       extranonceNotif.setExtranonce1(pool.getExtranonce1() + extranonce1Tail);
@@ -436,7 +438,8 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
    */
   private void sendInitialNotifications() {
     // Send the setExtranonce notif
-    if (isSetExtranonceNotificationSupported) {
+    if (true) {
+      // if (isSetExtranonceNotificationSupported) {
       MiningSetExtranonceNotification extranonceNotif = new MiningSetExtranonceNotification();
       extranonceNotif.setExtranonce1(pool.getExtranonce1() + extranonce1Tail);
       extranonceNotif.setExtranonce2Size(extranonce2Size);
@@ -481,7 +484,8 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
    */
   public void rebindToPool(Pool newPool)
       throws TooManyWorkersException, ChangeExtranonceNotSupportedException {
-    if (isSetExtranonceNotificationSupported) {
+    // if (isSetExtranonceNotificationSupported) {
+    if (true) {
       LOGGER.info("Rebind connection {} from pool {} to pool {} with setExtranonce notification.",
           getConnectionName(), pool.getName(), newPool.getName());
       // Release the old extranonce
@@ -523,6 +527,7 @@ public class StratumWorkerConnection extends StratumConnection implements Worker
   public double getAcceptedHashrate() {
     return workerHashrateDelegator.getAcceptedHashrate();
   }
+
   @Transient
   @Override
   public double getRejectedHashrate() {

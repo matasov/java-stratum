@@ -81,6 +81,8 @@ public class Pool {
   @Getter
   private UUID id;
 
+  private transient Pool parent;
+
   private String name;
   private String host;
   private URI uri;
@@ -110,7 +112,7 @@ public class Pool {
   private boolean isFirstRun;
   @Setter
   @Getter
-  private boolean isAppendWorkerNames;
+  private boolean isAppendWorkerNames = true;
   @Setter
   @Getter
   private boolean isUseWorkerPassword;
@@ -125,7 +127,7 @@ public class Pool {
   // Contains all available tails in Hexa format.
   private Deque<String> tails;
 
-  private PoolConnection connection;
+  private transient PoolConnection connection;
 
   private MiningNotifyNotification currentJob;
 
@@ -190,7 +192,7 @@ public class Pool {
     this.isFirstRun = true;
     this.numberOfDisconnections = 0;
     this.connectionExecutor = getConnectionExecutor();
-    this.connectionExecutor = getConnectionExecutor();
+    // this.connectionExecutor = getConnectionExecutor();
 
     acceptedDifficulty = new AtomicDouble(0);
     rejectedDifficulty = new AtomicDouble(0);
@@ -257,13 +259,14 @@ public class Pool {
       throws PoolStartException, URISyntaxException, SocketException {
     if (manager != null) {
       if (!isEnabled) {
+        LOGGER.error("{} is not enabled in startPool", Pool.this.getName());
         throw new PoolStartException(
             "Do not start the pool " + getName() + " since it is disabled.");
       }
 
       this.manager = manager;
       if (connection == null) {
-        LOGGER.debug("Starting pool {}...", getName());
+        LOGGER.warn("Starting pool {}...", getName());
         uri = new URI("stratum+tcp://" + host);
         if (uri.getPort() < 0) {
           UriBuilder.fromUri(uri).port(Constants.DEFAULT_POOL_PORT);
@@ -282,8 +285,9 @@ public class Pool {
                   uri.getPort() > -1 ? uri.getPort() : Constants.DEFAULT_POOL_PORT));
               connection = new PoolConnection(Pool.this, socket);
               connection.startReading();
-
               sendSubscribeRequest();
+              LOGGER.warn("Pool {}[{}] start connection to: {}", Pool.this.getName(),
+                  Pool.this.getId(), (uri.getHost() + ":" + uri.getPort()));
             } catch (IOException e) {
               LOGGER.error("Failed to connect the pool {}.", getName(), e);
               stopPool("Connection failed: " + e.getMessage());
@@ -358,12 +362,12 @@ public class Pool {
       isStable = false;
       if (manager != null)
         manager.onPoolStateChange(this);
-      LOGGER.debug("Stopping pool {}...", getName());
+      LOGGER.debug("Stopping pool {}[{}]...", getName(), getId());
       if (connection != null) {
         connection.close();
         connection = null;
       }
-      LOGGER.info("Pool {} stopped.", getName());
+      LOGGER.info("Pool {}[{}] stopped.", getName(), getId());
     }
   }
 
@@ -606,6 +610,7 @@ public class Pool {
     // If the appendWorkerNames is true, the proxy does not request an
     // authorization with the configuraed pool username but will request
     // authorization for each newly connected workers.
+
     if (isAppendWorkerNames) {
       ResponseReceivedCallback<MiningAuthorizeRequest, MiningAuthorizeResponse> callback =
           authorizeCallbacks.get(response.getId());
@@ -615,6 +620,8 @@ public class Pool {
       }
       // Then call the callback.
       if (callback != null) {
+        LOGGER.info("processAuthorizeResponse {}[{}] with userName: {}", this.getName(),
+            this.getId(), request.getUsername());
         callback.onResponseReceived(request, response);
       } else {
         LOGGER.warn("Received an unexpected authorize response.", response);
@@ -724,7 +731,7 @@ public class Pool {
     poolRequest.setNtime(workerRequest.getNtime());
 
     if (isAppendWorkerNames) {
-      PoolUserDTO workerName = manager.getPoolUsersManager().getPoolUserDTOFromRequest(this,
+      PoolUserDTO workerName = manager.getPoolUsersManager().getPoolUserDTOFromRequest(getParentPool() == null ? this : getParentPool(),
           workerRequest.getWorkerName());
       // poolRequest.setWorkerName((username == null ? "" : username)
       // + (workerSeparator == null ? "" : workerSeparator) + workerRequest.getWorkerName());
@@ -1059,7 +1066,7 @@ public class Pool {
    * Cancel all active timers
    */
   private synchronized void cancelTimers() {
-    LOGGER.debug("Cancel all timers of pool {}.", getName());
+    LOGGER.debug("Cancel all timers of pool {}[{}].", getName(), getId());
 
     if (stabilityTestTask != null) {
       stabilityTestTask.cancel();
@@ -1104,7 +1111,7 @@ public class Pool {
     // means that each worker has to be authorized. If false, the
     // authorization has already been done with the configured username.
     if (isAppendWorkerNames) {
-      PoolUserDTO workerName = manager.getPoolUsersManager().getPoolUserDTOFromRequest(this,
+      PoolUserDTO workerName = manager.getPoolUsersManager().getPoolUserDTOFromRequest(getParentPool() == null ? this : getParentPool(),
           workerRequest.getUsername());
       String finalUserName =
           username + (workerSeparator == null ? "." : workerSeparator) + workerName.getOutIndex();
@@ -1162,6 +1169,12 @@ public class Pool {
                 });
 
             // Send the request.
+            if (connection == null) {
+              LOGGER.error("PoolConnection is null in {}[{}] {}", this.getName(), this.getId(),
+                  this.getIsEnabled() ? "stupid" : "normal");
+            }
+            LOGGER.info("send authorize request to {}[{}] with userName: {}", this.getName(),
+                this.getId(), finalUserName);
             connection.sendRequest(poolRequest);
 
             // Wait for the response
@@ -1252,7 +1265,7 @@ public class Pool {
   }
 
   public boolean getIsActive() {
-    return this.isActive;
+    return connection != null && this.isActive;
   }
 
   public Date getActiveSince() {
@@ -1347,6 +1360,20 @@ public class Pool {
 
   public String getLastPoolMessage() {
     return this.lastPoolMessage;
+  }
+
+  public synchronized PoolConnection getConnection() {
+    return connection;
+  }
+
+  @Transient
+  public Pool getParentPool() {
+    return parent;
+  }
+
+  @Transient
+  public void setParentPool(Pool parent) {
+    this.parent = parent;
   }
 
 }
