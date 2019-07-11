@@ -969,6 +969,23 @@ public class ProxyResources {
     }
     return response;
   }
+  
+  @GET
+  @Path("pool/relation")
+  @ApiOperation(value = "Connect user to specific pool.", response = StatusDTO.class)
+  @ApiResponses({
+      @ApiResponse(code = 500, message = "Failed to add the pool.", response = StatusDTO.class),
+      @ApiResponse(code = 500, message = "Pool added but not started.",
+          response = StatusDTO.class)})
+  public Response relationPool(@QueryParam("pool") String poolName,
+      @QueryParam("user") String userName, @QueryParam("index") String indexValue) {
+
+    if(userName!=null && poolName!=null) {
+      Object result = stratumProxyManager.setUserConnection(poolName.toLowerCase(), userName.toLowerCase(), indexValue);
+      return Response.status(Response.Status.OK).entity(result).build();
+      }
+    return Response.status(Response.Status.FORBIDDEN).entity("{\"message\":\"not found params: pool, user, index\"}").build(); 
+  }
 
   /**
    * Return the log level from the level name. Throw an exception if the level does not exist.

@@ -19,8 +19,8 @@ public class PoolUserRelationRepositoryImplemented implements PoolUserRelationRe
   public void addPoolUserDTO(PoolUserDTO pool) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql = String.format("insert into %1$s values ('%2$s', '%3$s', '%4$s', '%5$s')",
-        PROXY_POOL_RELATION_TBL, pool.getId(), pool.getPoolID(), pool.getOutIndex(),
-        pool.getIncomingUserName());
+        PROXY_POOL_RELATION_TBL, pool.getId(), pool.getPoolID(), pool.getOutIndex().toLowerCase(),
+        pool.getIncomingUserName().toLowerCase());
     try {
       workStatement.execute(sql);
     } finally {
@@ -47,8 +47,9 @@ public class PoolUserRelationRepositoryImplemented implements PoolUserRelationRe
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql = String.format(
         "update %1$s set pool_id = '%3$s', out_index = '%4$s', incoming_name = '%5$s' where id = '%2$s'",
-        PROXY_POOL_RELATION_TBL, pool.getId(), pool.getPoolID(), pool.getOutIndex(),
-        pool.getIncomingUserName());
+        PROXY_POOL_RELATION_TBL, pool.getId(), pool.getPoolID(), pool.getOutIndex().toLowerCase(),
+        pool.getIncomingUserName().toLowerCase());
+    System.out.println("value for: "+sql);
     try {
       workStatement.execute(sql);
     } finally {
@@ -87,7 +88,7 @@ public class PoolUserRelationRepositoryImplemented implements PoolUserRelationRe
   public List<PoolUserDTO> getPresentUsersForPool(UUID poolID) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql =
-        String.format("select * from %1$s where pool_id = '%2$s'", PROXY_POOL_RELATION_TBL, poolID);
+        String.format("select * from %1$s where pool_id = '%2$s' order by out_index", PROXY_POOL_RELATION_TBL, poolID);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);

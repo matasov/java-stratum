@@ -45,8 +45,11 @@ import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.database.DatabaseManager;
+import strat.mining.stratum.proxy.database.model.PoolUserDTO;
 import strat.mining.stratum.proxy.database.repo.PoolRepository;
 import strat.mining.stratum.proxy.database.repo.PoolRepositoryImplemented;
+import strat.mining.stratum.proxy.database.repo.PoolUserRelationRepository;
+import strat.mining.stratum.proxy.database.repo.PoolUserRelationRepositoryImplemented;
 import strat.mining.stratum.proxy.database.repo.StratumUserRepository;
 import strat.mining.stratum.proxy.database.repo.StratumUserRepositoryImplemented;
 import strat.mining.stratum.proxy.database.repo.StratumWorkerConnectionRepository;
@@ -103,6 +106,9 @@ public class ProxyManager {
 
   StratumWorkerConnectionRepository getStratumConnectionRepo =
       new StratumWorkerConnectionRepositoryImplemented();
+
+  PoolUserRelationRepository poolUserRelationRepository =
+      new PoolUserRelationRepositoryImplemented();
 
   private static ProxyManager instance;
 
@@ -852,6 +858,57 @@ public class ProxyManager {
     poolSwitchingStrategyManager.onPoolAdded(poolToAdd);
 
     return poolToAdd;
+  }
+
+  public Object setUserConnection(String poolName, String userName, String indexValue) {
+    Pool customPool = null;
+    try {
+      customPool = poolRepo.getPoolByName(poolName);
+    } catch (SQLException | IOException e) {
+      return "Not Found Pool";
+    }
+    if (customPool != null) {
+      PoolUserDTO requestPool = poolUsersManager.getPoolUserDTOFromRequest(customPool, userName);
+      try {
+        Pool realPool = poolRepo.getPoolByUserNameStrategy(userName);
+      } catch (SQLException | IOException valueEx) {
+        valueEx.printStackTrace();
+      }
+      if (requestPool == null) {
+        return "Can't create new user.";
+      }
+      try {
+        UUID presentUUID = poolRepo.getUUIDRecordByUserNameStrategy(userName.toLowerCase());
+        if (presentUUID == null) {
+          poolRepo.addPoolByUserNameStrategy(userName, requestPool.getPoolID());
+        } else {
+          poolRepo.updatePoolByUserNameStrategy(presentUUID.toString(), userName,
+              requestPool.getPoolID());
+        }
+      } catch (SQLException | IOException e) {
+        e.printStackTrace();
+        return "Can't update out index.";
+      }
+      if (indexValue != null && !indexValue.equals("")
+          && !requestPool.getOutIndex().equalsIgnoreCase(indexValue)) {
+        try {
+          requestPool.setOutIndex(indexValue);
+          poolUserRelationRepository.updatePoolUserDTO(requestPool);
+        } catch (SQLException | IOException e) {
+          e.printStackTrace();
+          return "Can't update out index.";
+        }
+      } else {
+        LOGGER.info("index value: {}", indexValue);
+      }
+      try {
+        return poolUserRelationRepository.getPresentUsersForPool(customPool.getId());
+      } catch (SQLException | IOException e) {
+        e.printStackTrace();
+        return "DB error.";
+      }
+    }
+    return "Error. Not found anything.";
   }
 
   /**

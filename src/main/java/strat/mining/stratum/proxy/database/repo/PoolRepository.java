@@ -17,6 +17,8 @@ public interface PoolRepository {
   void updatePoolByHost(Pool pool) throws SQLException, IOException;
 
   Pool getPoolByID(UUID PoolID) throws SQLException, IOException;
+  
+  Pool getPoolByName(String PoolName) throws SQLException, IOException;
 
   List<Pool> getPresentPools() throws SQLException, IOException;
   
@@ -25,4 +27,10 @@ public interface PoolRepository {
   Pool getPoolByConnectionIdStrategy(UUID userID) throws SQLException, IOException;
   
   Pool getPoolByUserNameStrategy(String userName) throws SQLException, IOException;
+  
+  UUID getUUIDRecordByUserNameStrategy(String userName) throws SQLException, IOException;
+  
+  void addPoolByUserNameStrategy(String userName, UUID poolID) throws SQLException, IOException;
+  
+  void updatePoolByUserNameStrategy(String recordID, String userName, UUID poolID) throws SQLException, IOException;
 }

@@ -58,7 +58,8 @@ public class PoolRepositoryImplemented implements PoolRepository {
   public void updatePoolByHost(Pool pool) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     System.out.println("try update pool: " + new ObjectMapper().writeValueAsString(pool));
-    String sql = String.format("update %1$s set id = '%3$s', poll = '%4$s' where Lower(pool ->> 'host') = Lower('%2$s')",
+    String sql = String.format(
+        "update %1$s set id = '%3$s', poll = '%4$s' where Lower(pool ->> 'host') = Lower('%2$s')",
         POOL_TBL, pool.getHost(), pool.getId(), new ObjectMapper().writeValueAsString(pool));
     try {
       workStatement.execute(sql);
@@ -121,13 +122,38 @@ public class PoolRepositoryImplemented implements PoolRepository {
   @Override
   public Pool getPoolByHost(String host) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
-    String sql = String.format("select * from %1$s where Lower(pool ->> 'host') = Lower('%2$s')", POOL_TBL, host);
+    String sql = String.format("select * from %1$s where Lower(pool ->> 'host') = Lower('%2$s')",
+        POOL_TBL, host);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);
       while (rs.next()) {
-        Pool row =
-            new ObjectMapper().readValue(rs.getString("pool"), Pool.class);
+        Pool row = new ObjectMapper().readValue(rs.getString("pool"), Pool.class);
+        row.setId(UUID.fromString(rs.getString("id")));
+        row.setAppendWorkerNames(true);
+        // Start the getwork timeout
+        return row;
+      }
+      rs.close();
+    } finally {
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
+    }
+    return null;
+  }
+
+  @Override
+  public Pool getPoolByName(String name) throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    String sql = String.format("select * from %1$s where Lower(pool ->> 'name') = Lower('%2$s')",
+        POOL_TBL, name);
+    ResultSet rs = null;
+    try {
+      rs = workStatement.executeQuery(sql);
+      while (rs.next()) {
+        Pool row = new ObjectMapper().readValue(rs.getString("pool"), Pool.class);
         row.setId(UUID.fromString(rs.getString("id")));
         row.setAppendWorkerNames(true);
         // Start the getwork timeout
@@ -172,8 +198,9 @@ public class PoolRepositoryImplemented implements PoolRepository {
   public Pool getPoolByUserNameStrategy(String userName) throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql = String.format(
-        "select * from %1$s where id = (select pool from %2$s where user_name = '%3$s')", POOL_TBL,
-        POOL_USERNAME_RELATION_TBL, userName);
+        "select * from %1$s where id = (select pool from %2$s where LOWER(user_name) = LOWER('%3$s'))",
+        POOL_TBL, POOL_USERNAME_RELATION_TBL, userName);
+    System.out.println("getPoolByUserNameStrategy: " + sql);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);
@@ -191,5 +218,58 @@ public class PoolRepositoryImplemented implements PoolRepository {
         workStatement.close();
     }
     return null;
+  }
+
+  public UUID getUUIDRecordByUserNameStrategy(String userName) throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    String sql = String.format(
+        "select * from %2$s where user_name = '%3$s' limit 1",
+        POOL_TBL, POOL_USERNAME_RELATION_TBL, userName);
+    System.out.println("getUUIDRecordByUserNameStrategy: " + sql);
+    ResultSet rs = null;
+    try {
+      rs = workStatement.executeQuery(sql);
+      while (rs.next()) {
+        return UUID.fromString(rs.getString("id"));
+      }
+      rs.close();
+    } finally {
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
+    }
+    return null;
+  }
+
+  @Override
+  public void addPoolByUserNameStrategy(String userName, UUID poolID)
+      throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    String sql = String.format("insert into %1$s values ('%2$s', '%3$s', '%4$s')",
+        POOL_USERNAME_RELATION_TBL, UUID.randomUUID(), userName.toLowerCase(), poolID);
+    System.out.println("addPoolByUserNameStrategy: " + sql);
+    try {
+      workStatement.execute(sql);
+    } finally {
+      if (workStatement != null)
+        workStatement.close();
+    }
+  }
+
+  @Override
+  public void updatePoolByUserNameStrategy(String recordID, String userName, UUID poolID)
+      throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    String sql =
+        String.format("update %1$s set user_name = '%3$s', pool = '%4$s' where id = '%2$s'",
+            POOL_USERNAME_RELATION_TBL, recordID, userName.toLowerCase(), poolID);
+    System.out.println("updatePoolByUserNameStrategy sql: " + sql);
+    try {
+      workStatement.execute(sql);
+    } finally {
+      if (workStatement != null)
+        workStatement.close();
+    }
   }
 }
