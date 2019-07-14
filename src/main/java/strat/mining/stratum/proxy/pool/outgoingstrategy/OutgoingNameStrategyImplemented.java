@@ -27,7 +27,7 @@ public class OutgoingNameStrategyImplemented implements OutgoingNameStrategy {
     }
     if (result == null) {
       String outIndex = getPoolUserOutIndexByStrategy(poolID);
-      result = new PoolUserDTO(UUID.randomUUID(), poolID, outIndex, incomingUserName);
+      result = new PoolUserDTO(UUID.randomUUID(), poolID, "", outIndex, incomingUserName);
       try {
         poolUserRelationRepositoryImplemented.addPoolUserDTO(result);
       } catch (SQLException | IOException e) {

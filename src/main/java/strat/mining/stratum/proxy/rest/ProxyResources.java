@@ -47,6 +47,7 @@ import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.database.DatabaseManager;
 import strat.mining.stratum.proxy.database.model.HashrateModel;
+import strat.mining.stratum.proxy.database.model.SitePoolUserDTO;
 import strat.mining.stratum.proxy.database.model.SiteUserImplemented;
 import strat.mining.stratum.proxy.database.repo.SiteUserRepositoryImplemented;
 import strat.mining.stratum.proxy.exception.BadParameterException;
@@ -421,8 +422,6 @@ public class ProxyResources {
 
         Collections.sort(result, new Comparator<PoolDetailsDTO>() {
           public int compare(PoolDetailsDTO o1, PoolDetailsDTO o2) {
-            System.out.println("[" + o1.getName() + "]: " + o1.getPriority() + "[" + o2.getName()
-                + "]: " + o2.getPriority());
             return o1.getPriority().compareTo(o2.getPriority());
           }
         });
@@ -986,6 +985,72 @@ public class ProxyResources {
       }
     return Response.status(Response.Status.FORBIDDEN).entity("{\"message\":\"not found params: pool, user, index\"}").build(); 
   }
+  
+  @GET
+  @Path("pool/parentlist")
+  @ApiOperation(value = "Return the list of all pools.", response = PoolDetailsDTO.class,
+      responseContainer = "List")
+  public Response getParentPoolsList() {
+    System.out.println("try get parent list of pools");
+    try {
+      List<Pool> pools = stratumProxyManager.getParentPools();
+
+      List<PoolDetailsDTO> result = new ArrayList<>();
+      if (pools != null) {
+        for (Pool pool : pools) {
+          PoolDetailsDTO poolDTO = convertPoolToDTO(pool);
+          if (poolDTO != null)
+            result.add(poolDTO);
+        }
+
+        Collections.sort(result, new Comparator<PoolDetailsDTO>() {
+          public int compare(PoolDetailsDTO o1, PoolDetailsDTO o2) {
+            return o1.getPriority().compareTo(o2.getPriority());
+          }
+        });
+      }
+
+      Response response = Response.status(Response.Status.OK).entity(result).build();
+
+      return response;
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      return null;
+    }
+  }
+  
+  @GET
+  @Path("pool/connectuserslist")
+  @ApiOperation(value = "Return the list of all pools.", response = PoolDetailsDTO.class,
+      responseContainer = "List")
+  public Response getUsersConnectionsList() {
+    System.out.println("try get parent list of pools");
+    try {
+      List<SitePoolUserDTO> users = stratumProxyManager.getUsersForSite();      
+      Response response = Response.status(Response.Status.OK).entity(users).build();
+      return response;
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      return null;
+    }
+  }
+  
+  @GET
+  @Path("pool/relationuserslist")
+  @ApiOperation(value = "Connect user to specific pool.", response = StatusDTO.class)
+  @ApiResponses({
+      @ApiResponse(code = 500, message = "Failed to add the pool.", response = StatusDTO.class),
+      @ApiResponse(code = 500, message = "Pool added but not started.",
+          response = StatusDTO.class)})
+  public Response getRelationPools(@QueryParam("pool") String poolName,
+      @QueryParam("user") String userName, @QueryParam("index") String indexValue) {
+
+    if(userName!=null && poolName!=null) {
+      Object result = stratumProxyManager.setUserConnection(poolName.toLowerCase(), userName.toLowerCase(), indexValue);
+      return Response.status(Response.Status.OK).entity(result).build();
+      }
+    return Response.status(Response.Status.FORBIDDEN).entity("{\"message\":\"not found params: pool, user, index\"}").build(); 
+  }
 
   /**
    * Return the log level from the level name. Throw an exception if the level does not exist.
@@ -1020,6 +1085,7 @@ public class ProxyResources {
   private PoolDetailsDTO convertPoolToDTO(Pool pool) {
     PoolDetailsDTO result = new PoolDetailsDTO();
 
+    result.setId(pool.getId().toString());
     result.setDifficulty(pool.getDifficulty() != null ? pool.getDifficulty().toString() : null);
     result.setExtranonce1(pool.getExtranonce1());
     result.setExtranonce2Size(pool.getExtranonce2Size());

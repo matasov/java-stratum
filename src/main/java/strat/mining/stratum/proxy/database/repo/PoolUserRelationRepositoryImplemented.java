@@ -49,7 +49,7 @@ public class PoolUserRelationRepositoryImplemented implements PoolUserRelationRe
         "update %1$s set pool_id = '%3$s', out_index = '%4$s', incoming_name = '%5$s' where id = '%2$s'",
         PROXY_POOL_RELATION_TBL, pool.getId(), pool.getPoolID(), pool.getOutIndex().toLowerCase(),
         pool.getIncomingUserName().toLowerCase());
-    System.out.println("value for: "+sql);
+    //System.out.println("value for: " + sql);
     try {
       workStatement.execute(sql);
     } finally {
@@ -85,15 +85,47 @@ public class PoolUserRelationRepositoryImplemented implements PoolUserRelationRe
   }
 
   @Override
-  public List<PoolUserDTO> getPresentUsersForPool(UUID poolID) throws SQLException, IOException {
+  public List<PoolUserDTO> getAllPresentUsers() throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
-    String sql =
-        String.format("select * from %1$s where pool_id = '%2$s' order by out_index", PROXY_POOL_RELATION_TBL, poolID);
+    String sql = String.format(
+        "select *, (select pool->>'name' from pool where pool.id = %1$s.pool_id) as pool_name from %1$s order by incoming_name, pool_id, out_index",
+        PROXY_POOL_RELATION_TBL);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);
       if (rs != null) {
-        List<PoolUserDTO> resultSet = new ArrayList<>(rs.getFetchSize());
+        List<PoolUserDTO> resultSet = new ArrayList<>();
+        while (rs.next()) {
+          PoolUserDTO row = new PoolUserDTO();
+          row.setId(UUID.fromString(rs.getString("id")));
+          row.setPoolID(UUID.fromString(rs.getString("pool_id")));
+          row.setOutIndex(rs.getString("out_index"));
+          row.setIncomingUserName(rs.getString("incoming_name"));
+          row.setPoolName(rs.getString("pool_name"));
+          resultSet.add(row);
+        }
+        return resultSet;
+      }
+    } finally {
+      if (rs != null)
+        rs.close();
+      if (workStatement != null)
+        workStatement.close();
+    }
+    return null;
+
+  }
+
+  @Override
+  public List<PoolUserDTO> getPresentUsersForPool(UUID poolID) throws SQLException, IOException {
+    Statement workStatement = PostgresqlManager.getConnection().createStatement();
+    String sql = String.format("select * from %1$s where pool_id = '%2$s' order by out_index",
+        PROXY_POOL_RELATION_TBL, poolID);
+    ResultSet rs = null;
+    try {
+      rs = workStatement.executeQuery(sql);
+      if (rs != null) {
+        List<PoolUserDTO> resultSet = new ArrayList<>();
         while (rs.next()) {
           PoolUserDTO row = new PoolUserDTO();
           row.setId(UUID.fromString(rs.getString("id")));
@@ -119,7 +151,7 @@ public class PoolUserRelationRepositoryImplemented implements PoolUserRelationRe
       throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql =
-        String.format("select * from %1$s where pool_id = '%2$s' and incoming_name = '%3$s'",
+        String.format("select * from %1$s where pool_id = '%2$s' and LOWER(incoming_name) = LOWER('%3$s')",
             PROXY_POOL_RELATION_TBL, poolID, userName);
     ResultSet rs = null;
     try {

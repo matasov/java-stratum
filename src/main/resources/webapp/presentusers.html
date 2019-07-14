@@ -1,0 +1,392 @@
+<html lang="en">
+
+<head>
+	<title>MPool24</title>
+	<meta charset="utf-8">
+	<link href="css/stratumProxy.css" rel="stylesheet">
+	<script src="js/libs/jquery-2.1.3.js" type="text/javascript"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		#scrollToTop {
+			position: fixed;
+			bottom: 20px;
+			right: 20px;
+			font-weight: bold;
+			cursor: pointer;
+			opacity: 0;
+			transition: all 0.5s ease-in;
+		}
+
+		#loadingWrapper .loading {
+			border: 1px solid #CCCCCC;
+			height: auto;
+			left: 45%;
+			padding: 2px;
+			position: absolute;
+			top: 40%;
+			z-index: 20001;
+			width: 200px;
+		}
+
+		.loadingIndicator {
+			height: auto;
+			margin: 0;
+			padding: 10px;
+		}
+
+		.heavyText {
+			color: #444444;
+			font: bold 13px tahoma, arial, helvetica;
+		}
+
+		.smallText {
+			font: 10px arial, tahoma, sans-serif;
+		}
+	</style>
+
+</head>
+
+<body>
+	<div id="clientMainContainer">
+		<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+			<div class="container">
+				<div class="navbar-header"><button type="button" class="navbar-toggle" data-toggle="collapse"
+						data-target=".navbar-collapse"><span class="icon-bar"></span> <span class="icon-bar"></span>
+						<span class="icon-bar"></span></button> <a class="navbar-brand" href="index.html"
+						data-i18n="navbar.title">MPool24</a></div>
+				<div class="collapse navbar-collapse">
+					<ul id="navbarUl" class="nav navbar-nav">
+
+					</ul>
+
+				</div>
+			</div>
+		</div>
+		<br><br>
+		<h3>Pools.</h3>
+		<style type="text/css">
+			.tg {
+				border-collapse: collapse;
+				border-spacing: 0;
+				border-color: #93a1a1;
+			}
+
+			.tg td {
+				font-family: Arial, sans-serif;
+				font-size: 14px;
+				padding: 3px 14px;
+				border-style: solid;
+				border-width: 0px;
+				overflow: hidden;
+				word-break: normal;
+				border-top-width: 1px;
+				border-bottom-width: 1px;
+				border-color: #93a1a1;
+				color: #002b36;
+				background-color: #fcfbc7;
+			}
+
+			.tg th {
+				font-family: Arial, sans-serif;
+				font-size: 14px;
+				font-weight: normal;
+				padding: 3px 14px;
+				border-style: solid;
+				border-width: 0px;
+				overflow: hidden;
+				word-break: normal;
+				border-top-width: 1px;
+				border-bottom-width: 1px;
+				border-color: #93a1a1;
+				color: #fdf6e3;
+				background-color: #657b83;
+				vertical-align: top
+			}
+
+			.tg .tg-bkdark {
+				background-color: #cfd4e3;
+				font-size: 14px;
+				font-family: Arial, Helvetica, sans-serif !important;
+				;
+				vertical-align: top
+			}
+
+			.tg .tg-bkdisable {
+				background-color: #e0a8a8;
+				font-size: 14px;
+				font-family: Arial, Helvetica, sans-serif !important;
+				;
+				vertical-align: top
+			}
+
+			.tg .tg-bklight {
+				background-color: #dae8fc;
+				font-size: 14px;
+				font-family: Arial, Helvetica, sans-serif !important;
+				;
+				vertical-align: top
+			}
+
+			.tg .tg-bkactive {
+				background-color: #fcfbc7;
+				font-size: 14px;
+				font-family: Arial, Helvetica, sans-serif !important;
+				;
+				vertical-align: top
+			}
+
+			.tg .tg-bkactive2 {
+				background-color: #ebeab2;
+				font-size: 14px;
+				font-family: Arial, Helvetica, sans-serif !important;
+				;
+				vertical-align: top
+			}
+		</style>
+		<table id="pools" class="tg">
+			<tr>
+				<th hidden>id</th>
+				<th>name</th>
+				<th>host</th>
+				<th>user</th>
+				<th>password</th>
+				<th>hashrate</th>
+				<th>enabled</th>
+				<th>select</th>
+			</tr>
+
+		</table>
+		<h3>Новый пользователь</h3>
+		<table id="newuser" class="tg">
+			<tr>
+				<th>name</th>
+				<th>out index</th>
+				<th id="attached">attach to selected</th>
+			</tr>
+			<tr>
+				<td class="tg-bklight"><input type="text" id="new-name" value=""></td>
+				<td class="tg-bklight"><input type="text" id="new-out" value=""></td>
+				<td class="tg-bklight"><button type="button" onclick="attachToPool(false, true)">Attach</button></td>
+			</tr>
+
+		</table>
+		<h3>Список пользователей</h3>
+		<table id="users" class="tg">
+			<tr>
+				<th hidden>id</th>
+				<th>name</th>
+				<th>active pool</th>
+				<th>connection</th>
+				<th>access hash</th>
+				<th>reject hash</th>
+				<th>out index</th>
+				<th>re-attach</th>
+				<th id="reconnected">reconnect to pool</th>
+			</tr>
+
+		</table>
+	</div>
+	<div id="footer">
+
+	</div>
+	<script>
+		var poolId = null;
+		var poolName = null;
+
+		$(document).ready(function () {
+			let payload = {};
+
+			$.ajax({
+				type: "GET",
+
+				contentType: "application/json; charset=utf-8",
+				//url: "proxy/user/register",
+				url: "proxy/pool/parentlist",
+				dataType: "json",
+				async: false,
+				cache: false,
+				processData: false,
+				data: "{}"
+
+			})
+				.done(function (data) {
+					// console.log("success")
+					// console.log(JSON.stringify(data))
+					var table = $('<tbody></tbody>');
+					// here  define your rows
+					$.each(data, function (i, item) {
+						//alert(data[i].PageName);
+						let row = $('<tr></tr>');
+						let classPool = 'tg-0lax';
+						if (i % 2 == 0) {
+							classPool = 'tg-bkdark';
+						}
+						if (!data[i].isActive) {
+							if (i % 2 == 0) {
+								classPool = 'tg-bkdark';
+							} else
+								classPool = 'tg-bklight';
+						}
+						if (!data[i].isReady) {
+							classPool = 'tg-bkdisable';
+						}
+						//pools
+						row.append($('<td class="' + classPool + '" hidden></td>').html(data[i].id));
+						row.append($('<td class="' + classPool + '"></td>').html(data[i].name));
+						row.append($('<td class="' + classPool + '"></td>').html(data[i].host));
+						row.append($('<td class="' + classPool + '"></td>').html(data[i].username));
+						row.append($('<td class="' + classPool + '"></td>').html(data[i].password));
+						row.append($('<td class="' + classPool + '"></td>').html(data[i].acceptedHashesPerSeconds));
+						row.append($('<td class="' + classPool + '"></td>').html(data[i].isEnabled));
+
+						row.append($('<td class="' + classPool + '"></td>').html("<button type='button' onClick='onSetPool(\"" +
+							data[i].id + "\", \"" + data[i].name + "\")'>select</button>"));
+						table.append(row);
+					});
+
+					$(table).appendTo("#pools");
+					setDataToTableUsers();
+				})
+				.fail(function (data) {
+					console.log("wrong");
+					//window.location.href = "login.html";
+				});
+		});
+
+		function setDataToTableUsers() {
+			let payload = {};
+
+			$.ajax({
+				type: "GET",
+
+				contentType: "application/json; charset=utf-8",
+				//url: "proxy/user/register",
+				url: "proxy/pool/connectuserslist",
+				dataType: "json",
+				async: false,
+				cache: false,
+				processData: false,
+				data: "{}"
+
+			})
+				.done(function (data) {
+					// console.log("success")
+					//console.log(JSON.stringify(data))
+					var table = $('<tbody></tbody>');
+					// here  define your rows
+					$.each(data, function (i, item) {
+						console.log(data[i])
+						let row = $('<tr></tr>');
+						let classPool = 'tg-0lax';
+						if (i % 2 == 0) {
+							classPool = 'tg-bkdark';
+						}
+						if (data[i].connectionName != null) {
+							if (i % 2 == 0) {
+								classPool = 'tg-bkactive2';
+							} else
+								classPool = 'tg-bkactive';
+						}
+						if (data[i].rejectHash > 0  && data[i].rejectHash > data[i].accessHash) {
+							classPool = 'tg-bkdisable';
+						}
+						//users
+						row.append($('<td class="' + classPool + '" hidden></td>').html(data[i].id));
+						row.append($('<td class="' + classPool + '" id="name-' + data[i].id + '"></td>').html(data[i].incomingUserName));
+						row.append($('<td class="' + classPool + '"></td>').html(data[i].poolName));
+						row.append($('<td class="' + classPool + '"></td>').html(data[i].connectionName));
+						row.append($('<td class="' + classPool + '"></td>').html(data[i].accessHash));
+						row.append($('<td class="' + classPool + '"></td>').html(data[i].rejectHash));
+
+						row.append($('<td class="' + classPool + '"></td>').html("<input type='text' id='out-" +
+							data[i].id + "' value='" + data[i].outIndex + "'/>"));
+						row.append($('<td class="' + classPool + '"></td>').html("<button type='button' onClick='attachToPool(\"" +
+							data[i].id + "\", false)'>Attach</button>"));
+						table.append(row);
+					});
+
+
+					$(table).appendTo("#users");
+					// $('#userName').text("User: " + data.name);
+					// $('#firstConnectionDate').text(data.firstConnectionDate);
+					// $('#lastShareSubmitted').text(data.lastShareSubmitted);
+					// $('#acceptedHashesPerSeconds').text(data.acceptedHashesPerSeconds);
+					// $('#rejectedHashesPerSeconds').text(data.rejectedHashesPerSeconds);
+					// $('#acceptedDifficulty').text(data.acceptedDifficulty);
+					// $('#rejectedDifficulty').text(data.rejectedDifficulty);
+					// $('#acceptedShareNumber').text(data.acceptedShareNumber);
+					// $('#rejectedShareNumber').text(data.rejectedShareNumber);
+					// $('#connections').text(data.connections);
+				})
+				.fail(function (data) {
+					console.log("wrong");
+					//window.location.href = "login.html";
+				});
+		}
+
+		function onSetPool(id, name) {
+			console.log("selected id: " + id)
+			console.log("selected name: " + name)
+			poolId = id;
+			poolName = name;
+			let reconnected = document.getElementById("reconnected");
+			let attached = document.getElementById("attached");
+			reconnected.innerHTML = ("reconnect to: " + name);
+			attached.innerHTML = ("attach to: " + name);
+			let scrollElem = document.getElementById("scrollToTop");
+			if (poolId !== null) {
+				scrollElem.style.opacity = "1";
+				scrollElem.innerHTML = ("Для редактирования выбран пул: " + name);
+			} else {
+				scrollElem.style.opacity = "0";
+			}
+		}
+
+		function attachToPool(userID, isNewUser) {
+			let outIndex = '';
+			let userName = '';
+			if (isNewUser) {
+				userName = $('#new-name').val();
+				outIndex = $('#new-out').val();
+				console.log($('#new-name').val())
+				console.log($('#new-out').val())
+			} else {
+				userName = $('#name-' + userID).html();
+				outIndex = $('#out-' + userID).val();
+				console.log($('#name-' + userID).html())
+				console.log($('#out-' + userID).val())
+			}
+			if (poolId == null) {
+				alert("Pool is not selected!");
+			} else if (userName == '' || outIndex == '') {
+				alert("Empty params!");
+			} else {
+				$.ajax({
+					type: "GET",
+
+					contentType: "application/json; charset=utf-8",
+					//url: "proxy/user/register",
+					url: "/proxy/pool/relation?pool=" + poolName + "&user=" + userName + "&index=" + outIndex,
+					dataType: "json",
+					async: false,
+					cache: false,
+					processData: false,
+					data: "{}"
+
+				})
+					.done(function (data) {
+						alert(data);
+						setDataToTableUsers();
+					})
+					.fail(function (data) {
+						alert(data);
+					});
+			}
+
+		}
+
+	</script>
+	<div id="scrollToTop" onclick="goUp();">Пул не выбран</div>
+</body>
+
+</html>

@@ -15,6 +15,8 @@ public interface PoolUserRelationRepository {
   void updatePoolUserDTO(PoolUserDTO pool) throws SQLException, IOException;
 
   PoolUserDTO getPoolUserDTOByID(UUID PoolUserDTOID) throws SQLException, IOException;
+  
+  List<PoolUserDTO> getAllPresentUsers() throws SQLException, IOException;
 
   List<PoolUserDTO> getPresentUsersForPool(UUID poolID) throws SQLException, IOException;
 

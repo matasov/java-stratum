@@ -427,7 +427,7 @@ public class Launcher {
     } catch (Exception e) {
       e.printStackTrace();
     }
-    
+
     // try {
     // // test
     // new StratumUserRepositoryImplemented().addUser(new User("test" + new Random().nextInt(10)));
@@ -456,11 +456,12 @@ public class Launcher {
 
     // Start the pools.
     ProxyManager.getInstance().startPools(pools);
-//    LOGGER.info("test out index: {}", ProxyManager.getInstance().getPoolUsersManager().getPoolUserDTOFromRequest(dbPools.parallelStream()
-//        .filter(x -> x.getId().equals(UUID.fromString("4fb779b3-ef50-48ed-a403-17ba5f343b9b")))
-//        .findAny().orElse(null),
-//          "dmitriy"));
-    if (!ConfigurationManager.getInstance().isDisableStratum()) { 
+    // LOGGER.info("test out index: {}",
+    // ProxyManager.getInstance().getPoolUsersManager().getPoolUserDTOFromRequest(dbPools.parallelStream()
+    // .filter(x -> x.getId().equals(UUID.fromString("4fb779b3-ef50-48ed-a403-17ba5f343b9b")))
+    // .findAny().orElse(null),
+    // "dmitriy"));
+    if (!ConfigurationManager.getInstance().isDisableStratum()) {
       // Start to accept incoming workers connections
       ProxyManager.getInstance().startListeningIncomingConnections(
           configurationManager.getStratumBindAddress(),

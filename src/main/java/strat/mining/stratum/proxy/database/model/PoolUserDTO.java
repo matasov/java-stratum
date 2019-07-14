@@ -13,6 +13,8 @@ public class PoolUserDTO implements Comparable<PoolUserDTO> {
   UUID id;
 
   UUID poolID;
+  
+  String poolName;
 
   String outIndex;
 

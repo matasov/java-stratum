@@ -186,6 +186,7 @@ public class Pool {
 
   public Pool() {
     super();
+    this.id = UUID.randomUUID();
     this.isReady = false;
     this.isEnabled = true;
     this.isStable = false;

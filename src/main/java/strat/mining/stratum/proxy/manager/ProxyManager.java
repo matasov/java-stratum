@@ -36,16 +36,19 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jdk.internal.net.http.common.Log;
 import strat.mining.stratum.proxy.callback.ResponseReceivedCallback;
 import strat.mining.stratum.proxy.configuration.ConfigurationManager;
 import strat.mining.stratum.proxy.constant.Constants;
 import strat.mining.stratum.proxy.database.DatabaseManager;
 import strat.mining.stratum.proxy.database.model.PoolUserDTO;
+import strat.mining.stratum.proxy.database.model.SitePoolUserDTO;
 import strat.mining.stratum.proxy.database.repo.PoolRepository;
 import strat.mining.stratum.proxy.database.repo.PoolRepositoryImplemented;
 import strat.mining.stratum.proxy.database.repo.PoolUserRelationRepository;
@@ -731,6 +734,59 @@ public class ProxyManager {
     synchronized (pools) {
       result.addAll(pools);
     }
+    return result;
+  }
+
+  public List<Pool> getParentPools() {
+    List<Pool> result = getPools();
+    try {
+      List<Pool> dbPools = poolRepo.getPresentPools();
+      if (dbPools == null) {
+        return null;
+      }
+      // UUID y = UUID.randomUUID();
+      // System.out.println("found exp pool: " + dbPools.parallelStream()
+      // .filter(db -> db.getId().equals(y)).findAny().orElse(new Pool()).getId());
+      result =
+          result.parallelStream()
+              .filter(x -> dbPools.parallelStream().filter(db -> db.getId().equals(x.getId()))
+                  .findAny().orElse(new Pool()).getId().equals(x.getId()))
+              .collect(Collectors.toList());
+    } catch (SQLException | IOException e) {
+      e.printStackTrace();
+      return null;
+    }
+    return result;
+  }
+
+  public List<SitePoolUserDTO> getUsersForSite() {
+    List<PoolUserDTO> usersFromDB = null;
+    try {
+      usersFromDB = poolUserRelationRepository.getAllPresentUsers();
+    } catch (SQLException | IOException e) {
+      return null;
+    }
+    List<SitePoolUserDTO> result = new ArrayList<>(usersFromDB.size());
+    usersFromDB.stream().forEach(x -> {
+      try {
+        SitePoolUserDTO current = new SitePoolUserDTO(x);
+        WorkerConnection present = workerConnections.parallelStream()
+            .filter(connection -> !connection.getAuthorizedWorkers().entrySet().stream()
+                .map(line -> line.getKey())
+                .filter(user -> user.toLowerCase().equals(x.getIncomingUserName().toLowerCase())
+                    && x.getPoolID().equals(connection.getPool().getParentPool().getId()))
+                .findAny().orElse("").equals(""))
+            .findAny().orElse(null);
+        if (present != null) {
+          current.setConnectionName(present.getConnectionName());
+          current.setAccessHash(present.getAcceptedHashrate());
+          current.setRejectHash(present.getRejectedHashrate());
+        }
+        result.add(current);
+      } catch (NullPointerException ex) {
+        ex.printStackTrace();
+      }
+    });
     return result;
   }
 

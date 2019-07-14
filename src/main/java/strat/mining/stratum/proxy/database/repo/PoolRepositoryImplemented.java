@@ -95,7 +95,7 @@ public class PoolRepositoryImplemented implements PoolRepository {
   public List<Pool> getPresentPools() throws SQLException, IOException {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql = String.format("select * from %1$s", POOL_TBL);
-    System.out.println("query: " + sql);
+    //System.out.println("query: " + sql);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);
@@ -200,7 +200,7 @@ public class PoolRepositoryImplemented implements PoolRepository {
     String sql = String.format(
         "select * from %1$s where id = (select pool from %2$s where LOWER(user_name) = LOWER('%3$s'))",
         POOL_TBL, POOL_USERNAME_RELATION_TBL, userName);
-    System.out.println("getPoolByUserNameStrategy: " + sql);
+    //System.out.println("getPoolByUserNameStrategy: " + sql);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);
@@ -225,7 +225,7 @@ public class PoolRepositoryImplemented implements PoolRepository {
     String sql = String.format(
         "select * from %2$s where user_name = '%3$s' limit 1",
         POOL_TBL, POOL_USERNAME_RELATION_TBL, userName);
-    System.out.println("getUUIDRecordByUserNameStrategy: " + sql);
+    //System.out.println("getUUIDRecordByUserNameStrategy: " + sql);
     ResultSet rs = null;
     try {
       rs = workStatement.executeQuery(sql);
@@ -248,7 +248,7 @@ public class PoolRepositoryImplemented implements PoolRepository {
     Statement workStatement = PostgresqlManager.getConnection().createStatement();
     String sql = String.format("insert into %1$s values ('%2$s', '%3$s', '%4$s')",
         POOL_USERNAME_RELATION_TBL, UUID.randomUUID(), userName.toLowerCase(), poolID);
-    System.out.println("addPoolByUserNameStrategy: " + sql);
+    //System.out.println("addPoolByUserNameStrategy: " + sql);
     try {
       workStatement.execute(sql);
     } finally {
@@ -264,7 +264,7 @@ public class PoolRepositoryImplemented implements PoolRepository {
     String sql =
         String.format("update %1$s set user_name = '%3$s', pool = '%4$s' where id = '%2$s'",
             POOL_USERNAME_RELATION_TBL, recordID, userName.toLowerCase(), poolID);
-    System.out.println("updatePoolByUserNameStrategy sql: " + sql);
+    //System.out.println("updatePoolByUserNameStrategy sql: " + sql);
     try {
       workStatement.execute(sql);
     } finally {
